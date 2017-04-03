@@ -1,0 +1,707 @@
+package Compilador.Graphik;
+
+import java_cup.runtime.Symbol;
+import java_cup.runtime.*;
+import java.lang.*;
+import java.io.FileReader;
+import javax.swing.JOptionPane;
+import Compilador.NodoParser;
+import Compilador.Analizador;
+   
+parser code {:
+	public String nombreArchivo = "";
+    /* Reporte de error encontrado. */
+    public void syntax_error(Symbol s){
+        System.out.println("Error en la linea: " + (s.right + 1) + " columna "+ s.left + "Identificador " + s.value + "no reconocido");
+    }
+   
+   /* errores fatales */
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+        javax.swing.JOptionPane.showMessageDialog(null, "Error sintactico en la linea "+ ScannerG.linea + " columna " + ScannerG.columna + " Sym = [" + s.value +", "+s.sym+ "] no reconocido, en archivo: "+nombreArchivo);
+    }
+:};
+
+terminal String ENTERO, DECIMAL, CARACTER, CADENA, BOOL, ALS, VACIO, TRUE, FALSE, VAR, SI, SINO;
+terminal String PUBLICO, PRIVADO, PROTEGIDO, IMPORTAR, HEREDA, NUEVO, RETORNAR, LLAMAR, INCLUIR_HK, LLAMARHK;
+terminal String SELECCION, CASO, DEFECTO, PARA, MIENTRAS, HACER, CONTINUAR, TERMINAR, GRAPHIKAR_FUNCION;
+terminal String MAS, MENOS, POR, DIV, POT, MASMAS, MENOSMENOS, MAYOR, MENOR, MAYORIGUAL, MENORIGUAL, IGUAL, NOIGUAL;
+terminal String OR, AND, XOR, NOT, IGUALIGUAL, COR1, COR2, PAR2, PAR1, LLA1, LLA2, PUNTO, COMA, PUNTOYCOMA, DOSPUNTOS;
+terminal String PGK, ID, MOD, COLUMNA, PROCESAR, DONDE, DONDECADA, DONDETODO, IMPRIMIRK;
+    
+non terminal NodoParser inicio, imporGra, imporHash, clases, als, codigoClase, tipo, visibilidad, funcion, parametros;
+non terminal NodoParser declaracion, lista, listaExp;
+non terminal NodoParser llamada, llamadaH, sentencias, sentencia, enviados, asignacion, retornar;
+non terminal NodoParser exp,exp3,exp4,exp5,exp6,exp7,exp8,exp21, exp31, exp9;
+non terminal NodoParser si, seleccion, casos, caso, para, mientras, hacer, grafica, acceso;
+non terminal NodoParser procesar, columna, donde, dondeCada, dondeTodo, imprimir, cuerpo, variable; 
+
+precedence left INCLUIR_HK, IMPORTAR, ALS, COR1;
+precedence left OR;
+precedence left XOR;
+precedence left AND;
+precedence left NOT;
+precedence left MAYOR, MENOR, MAYORIGUAL, MENORIGUAL, IGUALIGUAL, NOIGUAL;
+precedence right MAS, MENOS;
+precedence left POR, DIV, MOD; 
+precedence left POT;
+precedence left PAR1, PAR2; 
+
+start with inicio;
+
+inicio ::= {:ScannerG.linea = 1; ScannerG.columna = 0;:} cuerpo:c{:
+				System.out.println("Compilacion graphik exitosa!!! XD");
+				Analizador.raiz = c;
+				:};
+
+cuerpo ::= cuerpo:e imporGra:i{:
+			RESULT = e;
+			RESULT.AgregarHijo(i);
+			:}
+		|cuerpo:e imporHash:i{:
+			RESULT = e;
+			RESULT.AgregarHijo(i);
+			:}
+		|cuerpo:e clases:c{:
+			RESULT = e;
+			RESULT.AgregarHijo(c);
+			:}
+		|imporGra:i{:
+			RESULT = new NodoParser("inicio","inicio");
+			RESULT.AgregarHijo(i);
+			:}
+		|imporHash:i{:
+			RESULT = new NodoParser("inicio","inicio");
+			RESULT.AgregarHijo(i);
+			:}
+		|clases:c{:
+			RESULT = new NodoParser("inicio","inicio");
+			RESULT.AgregarHijo(c);
+			:};
+
+imporGra ::= imporGra:i IMPORTAR ID:id PGK PUNTOYCOMA{:
+				RESULT = i;
+				NodoParser n = new NodoParser("ID",id);
+				RESULT.AgregarHijo(n);
+				:}
+			|IMPORTAR ID:id PGK PUNTOYCOMA{:
+				RESULT = new NodoParser("imporGra","imporGra");
+				NodoParser n = new NodoParser("ID",id);
+				RESULT.AgregarHijo(n);
+				:};
+
+imporHash ::= imporHash:i INCLUIR_HK ID:id PUNTOYCOMA{:
+				RESULT = i;
+				NodoParser n = new NodoParser("ID",id);
+				RESULT.AgregarHijo(n);
+				:}
+			|INCLUIR_HK ID:id PUNTOYCOMA{:
+				RESULT = new NodoParser("imporHash","imporHash");
+				NodoParser n = new NodoParser("ID",id);
+				RESULT.AgregarHijo(n);
+				:};
+
+clases ::= clases:c als:a{:
+			RESULT = c;
+			RESULT.AgregarHijo(a);
+			:}
+		|als:a{:
+			RESULT = new NodoParser("clases","clases");
+			RESULT.AgregarHijo(a);
+			:};
+
+als ::= als:a DOSPUNTOS visibilidad:v{:
+			RESULT = a;
+			RESULT.AgregarHijo(v);
+			:}
+		|als:a HEREDA ID:i{:
+			RESULT = a;
+			NodoParser n = new NodoParser("HEREDA",i);
+			RESULT.AgregarHijo(n);
+			:}
+		|als:a LLA1 codigoClase:c LLA2{:
+			RESULT = a;
+			RESULT.AgregarHijo(c);
+			:}
+		|ALS ID:i{:
+			RESULT = new NodoParser("ALS","ALS");
+			NodoParser n = new NodoParser("ID",i);
+			RESULT.AgregarHijo(n);
+			:};
+
+codigoClase ::= codigoClase:c declaracion:d PUNTOYCOMA{:
+			RESULT = c;
+			RESULT.AgregarHijo(d);
+			:}
+		|codigoClase:c funcion:f{:
+			RESULT = c;
+			RESULT.AgregarHijo(f);
+			:}
+		|declaracion:d PUNTOYCOMA{:
+			RESULT = new NodoParser("codigoClase","codigoClase");
+			RESULT.AgregarHijo(d);
+			:}
+		|funcion:f{:
+			RESULT = new NodoParser("codigoClase","codigoClase");
+			RESULT.AgregarHijo(f);
+			:};
+
+tipo ::= ENTERO{:
+					RESULT = new NodoParser("TIPO","entero");
+					:}
+		|DECIMAL{:
+					RESULT = new NodoParser("TIPO","decimal");
+					:}
+		|CARACTER{:
+					RESULT = new NodoParser("TIPO","caracter");
+					:}
+		|CADENA{:
+					RESULT = new NodoParser("TIPO","cadena");
+					:}
+		|BOOL{:
+					RESULT = new NodoParser("TIPO","bool");
+					:}
+		|ALS{:
+					RESULT = new NodoParser("TIPO","als");
+					:}
+		|VACIO{:
+			RESULT = new NodoParser("TIPO","vacio");
+			:}
+		|ID:i{:
+			RESULT = new NodoParser("ID",i);
+			:};
+
+visibilidad ::= PUBLICO{:
+					RESULT = new NodoParser("VISIBILIDAD","publico");
+					:}
+				|PROTEGIDO{:
+					RESULT = new NodoParser("VISIBILIDAD","protegido");
+					:}
+				|PRIVADO{:
+					RESULT = new NodoParser("VISIBILIDAD","privado");
+					:};
+
+funcion ::= funcion:f DOSPUNTOS visibilidad:v LLA1 sentencias:s LLA2{:
+			RESULT = f;
+			RESULT.AgregarHijo(v);
+			RESULT.AgregarHijo(s);
+			:}
+		|funcion:f LLA1 sentencias:s LLA2{:
+			RESULT = f;
+			RESULT.AgregarHijo(s);
+			:}
+		|tipo:t ID:i PAR1 parametros:p PAR2{:
+			RESULT = new NodoParser("funcion","funcion");
+			NodoParser n = new NodoParser("ID",i);
+			RESULT.AgregarHijo(t);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(p);
+			:}
+		|tipo:t ID:i PAR1 PAR2{:
+			RESULT = new NodoParser("funcion","funcion");
+			NodoParser n = new NodoParser("ID",i);
+			RESULT.AgregarHijo(t);
+			RESULT.AgregarHijo(n);
+			:};  
+
+parametros ::= parametros:p COMA tipo:t ID:i{:
+					RESULT = p;
+					NodoParser n = new NodoParser("ID",i);
+					RESULT.AgregarHijo(t);
+					RESULT.AgregarHijo(n);
+					:}
+				|parametros:p COR1 COR2{:
+					RESULT = p;
+					NodoParser n = new NodoParser("[","[");
+					RESULT.AgregarHijo(n);
+					:}
+				|tipo:t ID:i{:
+					RESULT = new NodoParser("parametros","parametros");
+					NodoParser n = new NodoParser("ID",i);
+					RESULT.AgregarHijo(t);
+					RESULT.AgregarHijo(n);
+					:};
+
+declaracion ::= declaracion:d COMA variable:v{:
+					RESULT = d;
+					RESULT.AgregarHijo(v);
+					:}
+				|VAR tipo:t variable:v{:
+					RESULT = new NodoParser("declaracion","declaracion");
+					RESULT.AgregarHijo(t);
+					RESULT.AgregarHijo(v);
+					:};
+
+variable ::= variable:v COR1 exp:e COR2{:
+				RESULT = v;
+				NodoParser nu = new NodoParser("DIMENSION","DIMENSION");
+				nu.AgregarHijo(e);
+				RESULT.AgregarHijo(nu);
+				:}
+			|variable:v IGUAL exp:e{:
+				RESULT = v;
+				RESULT.AgregarHijo(e);
+				:}
+			|variable:v IGUAL NUEVO ID:i PAR1 enviados:e PAR2{:
+				RESULT = v;
+				NodoParser nu = new NodoParser("NUEVO",i);
+				RESULT.AgregarHijo(nu);
+				RESULT.AgregarHijo(e);
+				:}
+			|variable:v IGUAL NUEVO ID:i PAR1 PAR2{:
+				RESULT = v;
+				NodoParser nu = new NodoParser("NUEVO","NUEVO");
+				RESULT.AgregarHijo(nu);
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				:}
+			|variable:v DOSPUNTOS visibilidad:vi{:
+				RESULT = v;
+				RESULT.AgregarHijo(vi);
+				:}
+			|ID:i{:
+				RESULT =  new NodoParser("variable","variable");
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				:};
+
+lista ::= LLA1 listaExp:l LLA2{:RESULT = l;:};
+
+listaExp ::= listaExp:e1 COMA exp:e2{:
+				RESULT = e1;
+				RESULT.AgregarHijo(e2);
+				:}
+			|exp:e{:
+				RESULT = new NodoParser("listaExp","listaExp");
+				RESULT.AgregarHijo(e);
+				:};
+
+llamada ::= ID:i PAR1 enviados:e PAR2{:
+				RESULT = new NodoParser("llamada","llamada");
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				RESULT.AgregarHijo(e);
+				:}
+			|ID:i PAR1  PAR2{:
+				RESULT = new NodoParser("llamada","llamada");
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				:};
+
+llamadaH ::= LLAMARHK ID:i PAR1 enviados:e PAR2{:
+				RESULT = new NodoParser("llamadaH","llamadaH");
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				RESULT.AgregarHijo(e);
+				:}
+			|LLAMARHK ID:i PAR1 PAR2{:
+				RESULT = new NodoParser("llamadaH","llamadaH");
+				NodoParser n = new NodoParser("ID",i);
+				RESULT.AgregarHijo(n);
+				:};
+
+enviados ::= enviados:e1 COMA exp:e2{:
+				RESULT = e1;
+				RESULT.AgregarHijo(e2);
+				:}
+			|exp:e{:
+				RESULT = new NodoParser("enviados","enviados");
+				RESULT.AgregarHijo(e);
+				:};
+
+sentencias ::= sentencias:s1 sentencia:s2{:
+				RESULT = s1;
+				RESULT.AgregarHijo(s2);
+				:}
+			|sentencia:s{:
+				RESULT = new NodoParser("sentencias","sentencias");
+				RESULT.AgregarHijo(s);
+				:};
+
+sentencia ::= declaracion:e PUNTOYCOMA{:RESULT = e;:}
+			|asignacion:e PUNTOYCOMA{:RESULT = e;:}
+			|retornar:e PUNTOYCOMA{:RESULT = e;:}
+			|grafica:e PUNTOYCOMA{:RESULT = e;:}
+			//|LLAMAR acceso:e PUNTOYCOMA{:RESULT = e;:}
+			//|llamadaH:e PUNTOYCOMA{:RESULT = e;:}
+			|procesar:e PUNTOYCOMA{:RESULT = e;:}
+			|donde:e PUNTOYCOMA{:RESULT = e;:}
+			|dondeCada:e PUNTOYCOMA{:RESULT = e;:}
+			|dondeTodo:e PUNTOYCOMA{:RESULT = e;:}
+			|imprimir:e PUNTOYCOMA{:RESULT = e;:}
+			|si:e{:RESULT = e;:}
+			|seleccion:e{:RESULT = e;:}
+			|para:e{:RESULT = e;:}
+			|mientras:e{:RESULT = e;:}
+			|hacer:e{:RESULT = e;:}
+			|CONTINUAR PUNTOYCOMA{:
+				RESULT = new NodoParser("CONTINUAR","CONTINUAR");
+				:}
+			|TERMINAR PUNTOYCOMA{:
+				RESULT = new NodoParser("TERMINAR","TERMINAR");
+				:}
+			|exp8:e PUNTOYCOMA{:RESULT = e;:};
+
+columna ::= COLUMNA PAR1 exp:e PAR2{:
+				RESULT = new NodoParser("columna","columna");
+				RESULT.AgregarHijo(e);
+				:};
+
+procesar ::= PROCESAR IGUAL exp:e{:
+				RESULT = new NodoParser("procesar","procesar");
+				RESULT.AgregarHijo(e);
+				:};
+
+
+donde ::= DONDE PAR1 exp:e1 PAR2 IGUAL exp:e2{:
+				RESULT = new NodoParser("donde","donde");
+				RESULT.AgregarHijo(e1);
+				RESULT.AgregarHijo(e2);
+				:};
+
+dondeCada ::= DONDECADA PAR1 exp:e PAR2{:
+				RESULT = new NodoParser("dondeCada","dondeCada");
+				RESULT.AgregarHijo(e);
+				:};
+
+dondeTodo ::= DONDETODO PAR1 exp:e PAR2{:
+				RESULT = new NodoParser("dondeTodo","dondeTodo");
+				RESULT.AgregarHijo(e);
+				:};
+
+imprimir ::= IMPRIMIRK PAR1 exp:e PAR2{:
+				RESULT = new NodoParser("imprimir","imprimir");
+				RESULT.AgregarHijo(e);
+				:};
+
+asignacion ::= exp9:i IGUAL exp:e{:
+				RESULT = new NodoParser("asignacion","asignacion");
+				RESULT.AgregarHijo(i);
+				RESULT.AgregarHijo(e);
+				:}
+			|exp9:i IGUAL NUEVO ID:i2 PAR1 PAR2{:
+				RESULT = new NodoParser("asignacion","asignacion");
+				NodoParser nu = new NodoParser("NUEVO",i2);
+				RESULT.AgregarHijo(i);
+				RESULT.AgregarHijo(nu);
+				:}
+			|exp9:i IGUAL NUEVO ID:i2 PAR1 exp:e PAR2{:
+				RESULT = new NodoParser("asignacion","asignacion");
+				NodoParser nu = new NodoParser("NUEVO",i2);
+				RESULT.AgregarHijo(i);
+				RESULT.AgregarHijo(nu);
+				RESULT.AgregarHijo(e);
+				:};
+
+retornar ::= RETORNAR exp:e{:
+				RESULT = new NodoParser("retornar","retornar");
+				RESULT.AgregarHijo(e);
+				:};
+
+si ::= si:s1 SINO LLA1 sentencias:s2 LLA2{:
+		RESULT = s1;
+		RESULT.AgregarHijo(s2);
+		:}
+	|SI PAR1 exp:e PAR2 LLA1 sentencias:s LLA2{:
+		RESULT = new NodoParser("si","si");
+		RESULT.AgregarHijo(e);
+		RESULT.AgregarHijo(s);
+		:};
+
+
+seleccion ::= SELECCION PAR1 exp:e PAR2 LLA1 casos:c LLA2{:
+				RESULT = new NodoParser("seleccion","seleccion");
+				RESULT.AgregarHijo(e);
+				RESULT.AgregarHijo(c);
+				:};
+
+casos ::= casos:c1 caso:c2{:
+			RESULT = c1;
+			RESULT.AgregarHijo(c2);
+			:}
+		|caso:c{:
+			RESULT = new NodoParser("casos","casos");
+			RESULT.AgregarHijo(c);
+			:};
+
+caso ::= CASO exp:e DOSPUNTOS sentencias:s{:
+			RESULT = new NodoParser("caso","caso");
+			RESULT.AgregarHijo(e);
+			RESULT.AgregarHijo(s);
+			:}
+		|DEFECTO DOSPUNTOS sentencias:s{:
+			RESULT = new NodoParser("caso","caso");
+			RESULT.AgregarHijo(s);
+			:};
+
+para ::= PARA PAR1 VAR tipo:t ID:i IGUAL exp:e DOSPUNTOS exp:e1 DOSPUNTOS exp:e2 PAR2 LLA1 sentencias:s LLA2{:
+			RESULT = new NodoParser("para","para");
+			NodoParser d = new NodoParser("declaracion","declaracion");
+			d.AgregarHijo(t);
+			NodoParser var = new NodoParser("variable","variable");
+			NodoParser id = new NodoParser("ID",i);
+			var.AgregarHijo(id);
+			var.AgregarHijo(e);
+			d.AgregarHijo(var);
+			RESULT.AgregarHijo(d);
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(e2);
+			RESULT.AgregarHijo(s);
+			:}
+		|PARA PAR1 asignacion:a DOSPUNTOS exp:e1 DOSPUNTOS exp:e2 PAR2 LLA1 sentencias:s LLA2{:
+			RESULT = new NodoParser("para","para");
+			RESULT.AgregarHijo(a);
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(e2);
+			RESULT.AgregarHijo(s);
+			:};
+
+mientras ::= MIENTRAS PAR1 exp:e PAR2 LLA1 sentencias:s LLA2{:
+				RESULT = new NodoParser("mientras","mientras");
+				RESULT.AgregarHijo(e);
+				RESULT.AgregarHijo(s);
+				:};
+
+hacer ::= HACER LLA1 sentencias:s LLA2 MIENTRAS PAR1 exp:e PAR2{:
+			RESULT = new NodoParser("hacer","hacer");
+			RESULT.AgregarHijo(e);
+			RESULT.AgregarHijo(s);
+			:};
+
+grafica ::= GRAPHIKAR_FUNCION PAR1 exp:e PAR2{:
+			RESULT = new NodoParser("grafica","grafica");
+			RESULT.AgregarHijo(e);
+			:};
+
+exp ::= exp:e1 OR exp21:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("OR","||");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp21:e{:
+			RESULT = e;
+			:};
+
+exp21 ::= exp21:e1 XOR exp3:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("XOR","&|");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp3:e{:
+			RESULT = e;
+			:};
+
+exp3 ::= exp3:e1 AND exp31:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("AND","&&");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp31:e{:
+			RESULT = e;
+			:};
+
+exp31 ::= NOT exp4:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("NOT","!");
+			RESULT.AgregarHijo(e2);
+			RESULT.AgregarHijo(n);
+			:}
+		|exp4:e{:
+			RESULT = e;
+			:};
+
+exp4 ::= exp4:e1 MAYOR exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MAYOR",">");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp4:e1 MENOR exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MENOR","<");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp4:e1 MAYORIGUAL exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MAYORIGUAL",">=");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp4:e1 MENORIGUAL exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MENORIGUAL","<=");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);:}
+		|exp4:e1 IGUALIGUAL exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("IGUALIGUAL","==");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp4:e1 NOIGUAL exp5:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("NOIGUAL","!=");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp5:e{:
+			RESULT = e;
+			:};
+
+exp5 ::= exp5:e1 MAS exp6:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MAS","+");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp5:e1 MENOS exp6:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MENOS","-");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp6:e{:
+			RESULT = e;
+			:};
+
+exp6 ::= exp6:e1 POR exp7:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("POR","*");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp6:e1 DIV exp7:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("DIV","/");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp7:e{:RESULT = e;:};
+
+exp7 ::= exp7:e1 POT exp8:e2{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("POT","pot");
+			RESULT.AgregarHijo(e1);
+			RESULT.AgregarHijo(n);
+			RESULT.AgregarHijo(e2);
+			:}
+		|exp8:e{:RESULT = e;:};
+
+exp8 ::= exp8:e MASMAS{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MASMAS","++");
+			RESULT.AgregarHijo(e);
+			RESULT.AgregarHijo(n);
+			:}
+		|exp8:e MENOSMENOS{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("MENOSMENOS","--");
+			RESULT.AgregarHijo(e);
+			RESULT.AgregarHijo(n);
+			:}
+		|exp9:e{:RESULT = e;:};
+
+exp9 ::= CADENA:id{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("CADENA",id);
+			RESULT.AgregarHijo(n);
+			:}
+		|ENTERO:id{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("ENTERO",id);
+			RESULT.AgregarHijo(n);
+			:}
+		|DECIMAL:id{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("DECIMAL",id);
+			RESULT.AgregarHijo(n);
+			:}
+		|CARACTER:id{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("CARACTER",id);
+			RESULT.AgregarHijo(n);
+			:}
+		|TRUE{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("BOOL","verdadero");
+			RESULT.AgregarHijo(n);
+			:}
+		|FALSE{:
+			RESULT = new NodoParser("exp","exp");
+			NodoParser n = new NodoParser("BOOL","falso");
+			RESULT.AgregarHijo(n);
+			:}
+		|lista:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|LLAMAR acceso:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|llamada:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|llamadaH:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|acceso:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|columna:n{:
+			RESULT = new NodoParser("exp","exp");
+			RESULT.AgregarHijo(n);
+			:}
+		|MENOS exp9:e{:
+			RESULT = new NodoParser("unario","unario");
+			RESULT.AgregarHijo(e);
+			:}
+		|PAR1 exp:e PAR2{:RESULT = e;:};
+
+
+
+acceso ::= acceso:a COR1 exp:e COR2{:
+			RESULT = a;
+			NodoParser n = new NodoParser("DIMENSION","DIMENSION");
+			n.AgregarHijo(e);
+			RESULT.AgregarHijo(n);
+			:} 
+		|acceso:a PUNTO ID:i{:
+			RESULT = a;
+			NodoParser n = new NodoParser("PUNTO",i);
+			RESULT.AgregarHijo(n);
+			:}
+		|acceso:a PAR1 enviados:e PAR2{:
+			RESULT = a;
+			RESULT.AgregarHijo(e);
+			:}
+		|acceso:a PAR1 PAR2{:
+			RESULT = a;
+			NodoParser n = new NodoParser("PAR1","(");
+			RESULT.AgregarHijo(n);
+			:}
+		|ID:i1{:
+			RESULT = new NodoParser("acceso","acceso");
+			NodoParser n1 = new NodoParser("ID",i1);
+			RESULT.AgregarHijo(n1);
+			:};
+
