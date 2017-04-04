@@ -6,7 +6,30 @@ import Compilador.NodoParser;
 import Compilador.token;
 import Tabla_Simbolos.Dato;
 import Tabla_Simbolos.NodoSimbolo;
+import clientehaskellgraphik.Ventana;
+import java.awt.Color;
+import java.awt.Desktop;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.StandardXYItemLabelGenerator;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 public class EjecucionG {
     public static boolean debuguear = false;
@@ -16,17 +39,23 @@ public class EjecucionG {
     static ArrayList<String> ambitos = new ArrayList<>();
     static ArrayList<String> clases = new ArrayList<>();
     static ArrayList<String> accesos = new ArrayList<>();
+    public static ArrayList<Dato> datos = new ArrayList<>();
+    static ArrayList<Dato> resultados = new ArrayList<>();
     //STRINGS AUXILIARES
     static String tipoActivo = "", valorSwitch = "";
     public static String imprimir = "";
     static String enviados = "", sobrecarga = "";
-    static String accesoActivo = "";
+    static String accesoActivo = "", claseActiva ="";
+    static String funHaskell = "";
     //ENTEROS AUXILIARES
     static int contador = 0;
+    static int contadorGraf = 0;
+    static int columna = 0;
     //BOOLEANAS AUXILIARES
     static boolean salir = false;
     static boolean continuar = false;
     static boolean retornar = false;
+    static boolean procesar = false;
     //DATOS AUXILIARES
     static Dato retornable = null;
     static ArrayList<Dato> lista = new ArrayList<Dato>();
@@ -75,6 +104,7 @@ public class EjecucionG {
                 String vis = token.publico, nombre = "", nuevo = "";
                 boolean esArr = false;
                 Dato val = new Dato();
+                val.clase = claseInicio;
                 coordenadas.clear();
                 for (int i = 0;i<nodo.contador;i++) {
                     NodoParser n = nodo.hijos.get(i);
@@ -111,16 +141,27 @@ public class EjecucionG {
                                     for (int j = 0; j < totalObjs; j++) {
                                         Dato aux = new Dato();
                                         for (NodoSimbolo a : atrs) {
-                                            Dato aux2 = a.dato.clonar();
-                                            aux.nombre = a.nombre;
-                                            aux.tipo = a.tipo;
+                                            Dato aux2; 
+                                            if(a.rol.equals("variable")){
+                                                aux2 = a.dato.clonar();
+                                            }else{
+                                                aux2 = new Dato("fucion");
+                                            }
+                                            aux2.nombre = a.nombre;
+                                            aux2.tipo = a.tipo;
                                             aux.addDato(aux2);
                                         }
                                         val.addDato(aux);
                                     }
+                                    val.valor = nombre;
                                 }else{
                                     for (NodoSimbolo a : atrs) {
-                                        Dato aux = a.dato.clonar();
+                                        Dato aux; 
+                                        if(a.rol.equals("variable")){
+                                            aux = a.dato.clonar();
+                                        }else{
+                                            aux = new Dato("funcion");
+                                        }
                                         aux.nombre = a.nombre;
                                         aux.tipo = a.tipo;
                                         val.addDato(aux);
@@ -150,6 +191,8 @@ public class EjecucionG {
                         val.dimensiones.add(c);
                     }
                 }
+                lista.clear();
+                coordenadas.clear();
                 val.nombre = nombre;
                 String amb = ambitos.get(ambitos.size()-1);
                 NodoSimbolo ns = new NodoSimbolo(nombre, tipoActivo, amb, val, claseInicio, vis);
@@ -207,13 +250,49 @@ public class EjecucionG {
             }
             case "grafica":{
                 // <editor-fold desc="grafica">
+                Dato d1 = Ejecutar(nodo.hijos.get(0));
+                Dato d2 = Ejecutar(nodo.hijos.get(1));
+                int lim = d1.lista.size(); 
+                contadorGraf++;
+                XYSeries serie = new XYSeries("Funcion"+contadorGraf);
+                for (int i = 0; i < lim; i++) {
+                    serie.add(Double.parseDouble(d1.lista.get(i).toString()),Double.parseDouble(d2.lista.get(i).toString()));
+                }
+                Ventana.lineas.addSeries(serie);
                 
+//                XYSeriesCollection lineas = new XYSeriesCollection();
+//                lineas.addSeries(serie);
+//                
+//                
+//                JFreeChart grafica = ChartFactory.createXYLineChart(
+//        "Grafica" , "X", "Y", lineas, PlotOrientation.VERTICAL,  true, true, false);               
+//
+//        //personalización del grafico
+//        XYPlot xyplot = (XYPlot) grafica.getPlot();
+//        xyplot.setBackgroundPaint( Color.white );
+//        xyplot.setDomainGridlinePaint( Color.BLACK );
+//        xyplot.setRangeGridlinePaint( Color.BLACK );        
+//        // -> Pinta Shapes en los puntos dados por el XYDataset
+//        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();
+//        xylineandshaperenderer.setBaseShapesVisible(true);
+//        //--> muestra los valores de cada punto XY
+//        XYItemLabelGenerator xy = new StandardXYItemLabelGenerator();
+//        xylineandshaperenderer.setBaseItemLabelGenerator( xy );
+//        xylineandshaperenderer.setBaseItemLabelsVisible(true);
+//         xylineandshaperenderer.setBaseLinesVisible(true);
+//         xylineandshaperenderer.setBaseItemLabelsVisible(true);
+//         
+//         ChartFrame graf = new ChartFrame("Grafica",grafica);
+//         graf.pack();
+//         graf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+//         graf.setVisible(true);
                 break;
                 // </editor-fold>
             }
             case "imprimir":{//YA ESTUVO 
                 // <editor-fold desc="imprimir">
-                String val = Ejecutar(nodo.hijos.get(0)).toString();
+                Dato d = Ejecutar(nodo.hijos.get(0));
+                String val = d.toString();
                 System.out.println(">>"+val);
                 imprimir += ">>"+val+"\n";
                 break;
@@ -425,11 +504,12 @@ public class EjecucionG {
                         String s = actual.nombre;
                         if(s.equals("ID")) {
                             accesoActivo = actual.valor;
-                            auxActual.nombre = accesoActivo;
-                            auxActual.tipo = claseInicio;
+                            //auxActual.nombre = accesoActivo;
+                            //auxActual.tipo = claseInicio;
+                            claseActiva = claseInicio;
                         }else if(s.equals("PUNTO")){
                             //<editor-fold desc="PUNTO">
-                            
+                            String nomNuevo = actual.valor;
                             int tam = ambitos.size()-1;
                             int tam2 = clases.size();
                             if(esArreglo){
@@ -453,9 +533,9 @@ public class EjecucionG {
                                     auxActual = auxActual.getDeLista(coordenadas);
                                 }
                                 coordenadas.clear();
+                            }else{
                             }
                             boolean encontrado = false;
-                            String nomNuevo = actual.valor;
                             String nom =accesoActivo;
                             String rol = "rol";
                             
@@ -474,8 +554,25 @@ public class EjecucionG {
                             }
                             encontrado = false;
                             if(!rol.equals("variable")){
+                                if(primero){
+                                    for (int i2 = tam;i2>=0 ;i2--) {
+                                        String amb = ambitos.get(i2);
+                                        for (int j = 0; j < tam2; j++) {
+                                            String clase = clases.get(j);
+                                            Dato aux2 = Analizador.tabla.getValor(nom, amb, clase);
+                                            if(aux2!=null){
+                                                auxActual = aux2;
+                                                encontrado = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    primero  = false;
+                                }
+                                auxAnterior = auxActual;
                                 accesoActivo = actual.valor;
-                                auxActual.nombre = accesoActivo;
+                                //auxActual.nombre = accesoActivo;
+                                //auxActual.valor = "funcion";
                             }else{
                                 if(primero){
                                     for (int i2 = tam;i2>=0 ;i2--) {
@@ -539,14 +636,14 @@ public class EjecucionG {
                             retornar = false;
                             contador++;
                             addAmbito("fun"+contador);
-                            String nom = auxActual.nombre;
+//                            String nom = auxActual.nombre;
                             if(actual.nombre.equals("enviados")){
                                 Ejecutar(actual);
                                 String parametros;
-                                if(auxActual.tipo.equals(claseInicio)){
-                                    parametros = Analizador.tabla.getParametros(nom, "global", sobrecarga, auxActual.tipo);
+                                if(primero){
+                                    parametros = Analizador.tabla.getParametros(accesoActivo, "global", sobrecarga, claseInicio);
                                 }else{
-                                    parametros = Analizador.tablaImport.getParametros(nom, "global", sobrecarga, auxActual.tipo);
+                                    parametros = Analizador.tablaImport.getParametros(accesoActivo, "global", sobrecarga, auxAnterior.tipo);
                                 }
                                 String[] so = sobrecarga.split(",");
                                 String[] p = parametros.split(",");
@@ -563,16 +660,18 @@ public class EjecucionG {
                             }
                             if(!primero){
                                 String amb = auxAnterior.nombre;
-                                agregarAtributosTemporles(auxAnterior.lista, amb);
+                                addAmbito(amb);
+                                agregarAtributosTemporles(auxActual.lista, amb);
                             }
                             NodoParser ins;
-                            if(auxActual.tipo.equals(claseInicio)){
-                                ins = Analizador.tabla.getInstrucciones(nom, "global", sobrecarga, auxActual.tipo);
+                            if(primero){
+                                ins = Analizador.tabla.getInstrucciones(accesoActivo, "global", sobrecarga, claseInicio);
                             }else{
-                                ins = Analizador.tablaImport.getInstrucciones(nom, "global", sobrecarga, auxActual.tipo);
+                                ins = Analizador.tablaImport.getInstrucciones(accesoActivo, "global", sobrecarga, auxAnterior.tipo);
                             }
                             Ejecutar(ins);
                             auxActual = retornable;
+                            eliminarAmbito();
                             eliminarAmbito();
                             esFun = true;
                             //</editor-fold>
@@ -614,69 +713,237 @@ public class EjecucionG {
             }
             case "llamadaH":{//YA ESTUVO
                 // <editor-fold desc="llamadaH">
+                if(procesar){
+                    funHaskell = nodo.hijos.get(0).valor;
+                    Ejecutar(nodo.hijos.get(1));
+                    break;
+                }
                 contador++;
                 addAmbito("funH"+contador);
                 String nom = nodo.hijos.get(0).valor;
+                //String amb = ambitos.get(ambitos.size()-1);
+                String amb = "global1";
                 if(nodo.contador == 2){
                     Ejecutar(nodo.hijos.get(1));
+                    String parametros = Analizador.tablaH.getParametros(nom, "global", "nul", "haskell");
+                    String[] p = parametros.split(",");
+                    String[] e = enviados.split(",");
+
+
+                    for(int i = 0;i < p.length;i++){
+                        Dato d = new Dato(e[i]);
+                        NodoSimbolo n = new NodoSimbolo(p[i], "number", amb, d,"haskell","publico");
+                        Analizador.tablaH.insertar(n);
+                    }
                 }
-                String parametros = Analizador.tablaH.getParametros(nom, "global", "nul", "haskell");
-                String[] p = parametros.split(",");
-                String[] e = enviados.split(",");
-                String amb = ambitos.get(ambitos.size()-1);
-                for(int i = 0;i < p.length;i++){
-                    Dato d = new Dato(e[i]);
-                    NodoSimbolo n = new NodoSimbolo(p[i], "number", amb, d,"haskell","publico");
-                    Analizador.tablaH.insertar(n);
-                }
+                EjecucionH.ambitos.add(amb);
                 NodoParser ins = Analizador.tablaH.getInstrucciones(nom, "global", "nul", "haskell");
-                Dato d = EjecucionH.Ejecutar(ins);
+                EjecucionH.Ejecutar(ins);
+                String s = EjecucionH.retornableD.toStringH();
+                Dato d = new Dato(s);
+                d.tipo = token.decimal;
+                Analizador.tablaH.eliminarPorAmbito(amb);
+                EjecucionH.ambitos.remove(amb);
                 eliminarAmbito();
                 return d;
                 // </editor-fold>
             }
             case "enviados":{//YA ESTUVO
                 // <editor-fold desc="enviados">
-                enviados = "";
-                sobrecarga = "";
-                for (NodoParser n : nodo.hijos) {
-                    Dato d = Ejecutar(n);
-                    enviados += d.valor + ",";
-                    sobrecarga += d.tipo + ",";
+                if(procesar){
+                    int x = Ejecutar(nodo.hijos.get(0)).lista.size();
+                    for (int i = 0; i < x; i++) {
+                                contador++;
+                                addAmbito("funH"+contador);
+                                String amb = "global1";
+                                    String parametros = Analizador.tablaH.getParametros(funHaskell, "global", "nul", "haskell");
+                                    String[] p = parametros.split(",");
+                                    for(int i2 = 0;i2 < p.length;i2++){
+                                        Dato col = Ejecutar(nodo.hijos.get(i2));
+                                        Dato d;
+                                        if(col.esLista){
+                                            d = col.lista.get(i);
+                                        }else{
+                                            d = col;
+                                        }
+                                        NodoSimbolo n = new NodoSimbolo(p[i2], "number", amb, d,"haskell","publico");
+                                        Analizador.tablaH.insertar(n);
+                                    }
+                                EjecucionH.ambitos.add(amb);
+                                NodoParser ins = Analizador.tablaH.getInstrucciones(funHaskell, "global", "nul", "haskell");
+                                EjecucionH.Ejecutar(ins);
+                                String s = EjecucionH.retornableD.toStringH();
+                                Dato d = new Dato(s);
+                                d.tipo = token.decimal;
+                                Analizador.tablaH.eliminarPorAmbito(amb);
+                                EjecucionH.ambitos.remove(amb);
+                                eliminarAmbito();
+                                resultados.add(d);
+                    }
+                }else{
+                    enviados = "";
+                    sobrecarga = "";
+                    for (NodoParser n : nodo.hijos) {
+                        Dato d = Ejecutar(n);
+                        enviados += d.valor + ",";
+                        sobrecarga += d.tipo + ",";
+                    }
+                    enviados = enviados.substring(0,enviados.length()-1);
+                    sobrecarga = sobrecarga.substring(0,sobrecarga.length()-1);
+                    
                 }
-                enviados = enviados.substring(0,enviados.length()-1);
-                sobrecarga = sobrecarga.substring(0,sobrecarga.length()-1);
                 break;
                 // </editor-fold>
             }
             // <editor-fold desc="PROCESO DE DATOS">
             case "columna":{
                 // <editor-fold desc="ACCCIONES">
-                
-                break;
+                Dato d = Ejecutar(nodo.hijos.get(0));
+                float f = Float.parseFloat(d.toString());
+                columna = Math.round(f);
+                return datos.get(columna);
                 // </editor-fold>
             }
             case "procesar":{
                 // <editor-fold desc="ACCCIONES">
-                
+                procesar = true;
+                resultados.clear();
+                Ejecutar(nodo.hijos.get(0));
                 break;
                 // </editor-fold>
             }
             case "donde":{
                 // <editor-fold desc="ACCCIONES">
+                float f = Float.parseFloat(Ejecutar(nodo.hijos.get(0)).toString());
+                columna = Math.round(f);
+                Dato d = Ejecutar(nodo.hijos.get(1));
+                String html = "<HTML> <HEAD> <TITLE> Resultados Donde </TITLE> </HEAD> <BODY>\n";
+                html += "<br>";
+                html += "<table width=\"60%\" border=\"2\" align=\"center\" cellspacing=\"0\" bordercolor=\"#000000\" bgcolor=\"#FFCC99\">";
+                html += "<tr>";
+                html += "   <th><strong> Donde </th>";
+                html += "   <th><strong> "+funHaskell+"</th>";
+                html += "</tr>";
+                int l = datos.get(columna).lista.size();
+                for (int i = 0;i<l;i++) {
+                    Dato dato = datos.get(columna).lista.get(i);
+                    if(dato.toString().equals(d.toString())){
+                        html += "<tr>";
+                        html += "   <td align=\"center\">"+dato.toString()+"</td>";
+                        html += "   <td align=\"center\">" + resultados.get(i).toString() + "</td>";
+                        html += "</tr>";
+                    }
+                }
+                html += "</table>";
+                html += "</BODY></HTML>";
                 
+                File archivo = new File("tablaDonde.html");
+                BufferedWriter bw;
+                try {
+                    bw = new BufferedWriter(new FileWriter(archivo));
+                    bw.write(html);
+                    bw.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                Desktop desktop;
+                if (Desktop.isDesktopSupported()){// si éste Host soporta esta API 
+                    desktop = Desktop.getDesktop();//objtengo una instancia del Desktop(Escritorio)de mi host 
+                    try {            
+                        desktop.open(archivo);//abro el archivo con el programa predeterminado
+                    } catch (IOException ex) {
+                        Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 break;
                 // </editor-fold>
             }
             case "dondeCada":{
                 // <editor-fold desc="ACCCIONES">
+                float f = Float.parseFloat(Ejecutar(nodo.hijos.get(0)).toString());
+                columna = Math.round(f);
+                String html = "<HTML> <HEAD> <TITLE> Resultados DondeCada</TITLE> </HEAD> <BODY>\n";
+                html += "<br>";
+                html += "<table width=\"60%\" border=\"2\" align=\"center\" cellspacing=\"0\" bordercolor=\"#000000\" bgcolor=\"#FFCC99\">";
+                html += "<tr>";
+                html += "   <th><strong> Donde </th>";
+                html += "   <th><strong> "+funHaskell+"</th>";
+                html += "</tr>";
+                int l = datos.get(columna).lista.size();
+                for (int i = 0;i<l;i++) {
+                    Dato dato = datos.get(columna).lista.get(i);
+                        html += "<tr>";
+                        html += "   <td align=\"center\">"+dato.toString()+"</td>";
+                        html += "   <td align=\"center\">" + resultados.get(i).toString() + "</td>";
+                        html += "</tr>";
+                }
+                html += "</table>";
+                html += "</BODY></HTML>";
                 
+                File archivo = new File("tablaDondeCada.html");
+                BufferedWriter bw;
+                try {
+                    bw = new BufferedWriter(new FileWriter(archivo));
+                    bw.write(html);
+                    bw.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                Desktop desktop;
+                if (Desktop.isDesktopSupported()){// si éste Host soporta esta API 
+                    desktop = Desktop.getDesktop();//objtengo una instancia del Desktop(Escritorio)de mi host 
+                    try {            
+                        desktop.open(archivo);//abro el archivo con el programa predeterminado
+                    } catch (IOException ex) {
+                        Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 break;
                 // </editor-fold>
             }
             case "dondeTodo":{
                 // <editor-fold desc="ACCCIONES">
+                float f = Float.parseFloat(Ejecutar(nodo.hijos.get(0)).toString());
+                columna = Math.round(f);
+                String html = "<HTML> <HEAD> <TITLE> Resultados DondeTodo</TITLE> </HEAD> <BODY>\n";
+                html += "<br>";
+                html += "<table width=\"60%\" border=\"2\" align=\"center\" cellspacing=\"0\" bordercolor=\"#000000\" bgcolor=\"#FFCC99\">";
+                html += "<tr>";
+                html += "   <th><strong> Donde </th>";
+                html += "   <th><strong> "+funHaskell+"</th>";
+                html += "</tr>";
+                float sum = 0;
+                for (Dato r : resultados) {
+                    sum += Float.parseFloat(r.toString());
+                }
+                        html += "<tr>";
+                        html += "   <td align=\"center\"> Todo</td>";
+                        html += "   <td align=\"center\">" + sum+ "</td>";
+                        html += "</tr>";
+                html += "</table>";
+                html += "</BODY></HTML>";
                 
+                File archivo = new File("tablaDondeTod.html");
+                BufferedWriter bw;
+                try {
+                    bw = new BufferedWriter(new FileWriter(archivo));
+                    bw.write(html);
+                    bw.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                Desktop desktop;
+                if (Desktop.isDesktopSupported()){// si éste Host soporta esta API 
+                    desktop = Desktop.getDesktop();//objtengo una instancia del Desktop(Escritorio)de mi host 
+                    try {            
+                        desktop.open(archivo);//abro el archivo con el programa predeterminado
+                    } catch (IOException ex) {
+                        Logger.getLogger(EjecucionG.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 break;
                 // </editor-fold>
             }
@@ -1032,6 +1299,13 @@ public class EjecucionG {
                     break;
                     // </editor-fold>
             }
+            case "unario":{
+                Dato d = Ejecutar(nodo.hijos.get(0));
+                float f = Float.parseFloat(d.toString());
+                Dato r = new Dato(f*-1);
+                r.tipo = token.entero;
+                return r;
+            }
             default:
                 throw new AssertionError();
         }
@@ -1041,12 +1315,8 @@ public class EjecucionG {
     
     public static void agregarAtributosTemporles(ArrayList<Dato> lista, String ambito){
         for (Dato d : lista) {
-            if(d.esLista){
-                agregarAtributosTemporles(d.lista, ambito);
-            }else{
-                NodoSimbolo nuevo = new NodoSimbolo(d.nombre, d.tipo, ambito, d, claseInicio, "publico");
-                insertar(nuevo);
-            }
+            NodoSimbolo nuevo = new NodoSimbolo(d.nombre, d.tipo, ambito, d, claseInicio, "publico");
+            insertar(nuevo);
         }
     }
     
@@ -1081,6 +1351,11 @@ public class EjecucionG {
     public static void eliminarAmbito(){
         Analizador.tabla.eliminarPorAmbito(ambitos.get(ambitos.size()-1));
         ambitos.remove(ambitos.size()-1);
+        //contador--;
+    }
+    public static void eliminarAmbitoH(){
+        Analizador.tablaH.eliminarPorAmbito(EjecucionH.ambitos.get(EjecucionH.ambitos.size()-1));
+        EjecucionH.ambitos.remove(EjecucionH.ambitos.size()-1);
         //contador--;
     }
 }

@@ -70,13 +70,13 @@ public class Analizador {
                 pintar("G");
                 RecoleccionG rg = new RecoleccionG(idTabla);
                 rg.Recolectar(raiz);
-                if(debuguear){
+                if(debuguear && ejecutar){
                     tablaImport.GenerarTablaHTML();
                 }
                 if(ejecutar){
                     EjecucionG.Ejecutar(raiz);
                 }
-                if(debuguear){
+                if(debuguear && ejecutar){
                     tabla.GenerarTablaHTML();
                 }
                 return true;

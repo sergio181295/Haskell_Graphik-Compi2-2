@@ -11,14 +11,30 @@ import javax.swing.JFileChooser;
 import Compilador.*;
 import Compilador.Graphik.EjecucionG;
 import Compilador.Graphik.RecoleccionG;
+import Tabla_Simbolos.Dato;
+import java.awt.Color;
 import java.awt.event.KeyEvent;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.StandardXYItemLabelGenerator;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
         
 public class Ventana extends javax.swing.JFrame {
-
+    
+    //VARIABLES PARA LA GRAFICA
+    public static XYSeriesCollection lineas = new XYSeriesCollection();
+    
     public Ventana() {
         initComponents();
         this.setLocationRelativeTo(null);
-        File archivo = new File("C:\\Users\\Sergio\\Desktop\\Familia.gk");//C:\\Users\\pipaa\\Desktop
+        File archivo = new File("C:\\Users\\Sergio\\Desktop\\prueba.gk");//C:\\Users\\pipaa\\Desktop
         FileReader fr;
         try {
             fr = new FileReader (archivo.getPath());
@@ -69,6 +85,8 @@ public class Ventana extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         btnTablaSimbolos1 = new javax.swing.JButton();
         ejecutar1 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        importarDatos = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -170,6 +188,20 @@ public class Ventana extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Grafica");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        importarDatos.setText("Cargar Datos");
+        importarDatos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                importarDatosActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -183,22 +215,22 @@ public class Ventana extends javax.swing.JFrame {
                         .addComponent(entradaComando, javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 660, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(reportes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnTablaSimbolos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnTablaSimbolos1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(nuevoProyecto, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE)
-                        .addComponent(impoexp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(nuevo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(abrir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(guardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(guardarComo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cerrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(ejecutar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnlogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(ejecutar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(reportes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnTablaSimbolos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnTablaSimbolos1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(nuevoProyecto, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(impoexp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(nuevo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(abrir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(guardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(guardarComo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cerrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ejecutar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnlogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(ejecutar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(importarDatos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -240,6 +272,10 @@ public class Ventana extends javax.swing.JFrame {
                         .addComponent(btnTablaSimbolos, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnTablaSimbolos1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(importarDatos, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -276,7 +312,7 @@ public class Ventana extends javax.swing.JFrame {
 
     private void abrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abrirActionPerformed
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("C:\\Users\\pipaa\\Desktop"));
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\Sergio\\Desktop"));
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File archivo = fileChooser.getSelectedFile();
@@ -360,6 +396,83 @@ public class Ventana extends javax.swing.JFrame {
         ImportarExportar_Form ie = new ImportarExportar_Form();
         ie.setVisible(true);
     }//GEN-LAST:event_impoexpActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        JFreeChart grafica = ChartFactory.createXYLineChart(
+        "Grafica" , "X", "Y", lineas, PlotOrientation.VERTICAL,  true, true, false);               
+
+        //personalización del grafico
+        XYPlot xyplot = (XYPlot) grafica.getPlot();
+        xyplot.setBackgroundPaint( Color.white );
+        xyplot.setDomainGridlinePaint( Color.BLACK );
+        xyplot.setRangeGridlinePaint( Color.BLACK );        
+        // -> Pinta Shapes en los puntos dados por el XYDataset
+        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();
+        xylineandshaperenderer.setBaseShapesVisible(true);
+        //--> muestra los valores de cada punto XY
+        XYItemLabelGenerator xy = new StandardXYItemLabelGenerator();
+        xylineandshaperenderer.setBaseItemLabelGenerator( xy );
+        xylineandshaperenderer.setBaseItemLabelsVisible(true);
+         xylineandshaperenderer.setBaseLinesVisible(true);
+         xylineandshaperenderer.setBaseItemLabelsVisible(true);
+         
+         ChartFrame graf = new ChartFrame("Grafica",grafica);
+         graf.pack();
+         graf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+         graf.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void importarDatosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importarDatosActionPerformed
+        // TODO add your handling code here:
+        boolean esEncabezado = true;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\Sergio\\Desktop"));
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File archivo = fileChooser.getSelectedFile();
+            FileReader fr;
+            try {
+                fr = new FileReader (archivo.getPath());
+                BufferedReader br = new BufferedReader(fr);
+                String texto = "";
+                String linea;
+                int contador = 0;
+                while((linea=br.readLine())!=null){
+                    if(esEncabezado){
+                        esEncabezado = false;
+                        linea = linea.replace('[', ' ');
+                        linea = linea.replace(']', ' ');
+                        linea = linea.replace('"', ' ');
+                        String[] aux = linea.split(",");
+                        for (String s : aux) {
+                            Dato d = new Dato(s.trim());
+                            EjecucionG.datos.add(d);
+                        }
+                    }else{
+                        linea = linea.replace('{', ' ');
+                        linea = linea.replace('}', ' ');
+                        linea = linea.replace('"', ' ');
+                        String[] aux = linea.split(",");
+                        int x = aux.length;
+                        for (int i = 0; i < x; i++) {
+                            Dato d = new Dato(aux[i].trim());
+                            EjecucionG.datos.get(i).addDato(d);
+                        }
+                    }
+                }
+                for (Dato dato : EjecucionG.datos) {
+                    System.out.println(dato.toString());
+                }
+                br.close();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Ventana.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+    }//GEN-LAST:event_importarDatosActionPerformed
     
     
     public JTextArea getTextBox(String nombre) {
@@ -411,6 +524,8 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JButton guardar;
     private javax.swing.JButton guardarComo;
     public static javax.swing.JButton impoexp;
+    private javax.swing.JButton importarDatos;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton nuevo;

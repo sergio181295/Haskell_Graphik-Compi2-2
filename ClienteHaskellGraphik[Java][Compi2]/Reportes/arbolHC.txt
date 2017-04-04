@@ -9,10 +9,10 @@ nodo4[label = "enviados;enviados"];
 nodo2->nodo4;
 nodo5[label = "exp;exp"];
 nodo4->nodo5;
-nodo6[label = "CARACTER;c"];
+nodo6[label = "CARACTER;b"];
 nodo5->nodo6;
 nodo7[label = "exp;exp"];
 nodo4->nodo7;
-nodo8[label = "CADENA;Sergio"];
+nodo8[label = "CADENA;pablo"];
 nodo7->nodo8;
 }

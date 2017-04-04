@@ -34,24 +34,22 @@
                   </Group>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="reportes" max="32767" attributes="0"/>
-                      <Component id="btnTablaSimbolos" max="32767" attributes="0"/>
-                      <Component id="btnTablaSimbolos1" alignment="0" max="32767" attributes="0"/>
-                  </Group>
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="nuevoProyecto" pref="117" max="32767" attributes="0"/>
-                      <Component id="impoexp" max="32767" attributes="0"/>
-                      <Component id="nuevo" max="32767" attributes="0"/>
-                      <Component id="abrir" max="32767" attributes="0"/>
-                      <Component id="guardar" max="32767" attributes="0"/>
-                      <Component id="guardarComo" max="32767" attributes="0"/>
-                      <Component id="cerrar" max="32767" attributes="0"/>
-                      <Component id="ejecutar" max="32767" attributes="0"/>
-                      <Component id="btnlogin" alignment="0" max="32767" attributes="0"/>
-                      <Component id="ejecutar1" alignment="0" max="32767" attributes="0"/>
-                  </Group>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="reportes" max="32767" attributes="0"/>
+                  <Component id="btnTablaSimbolos" max="32767" attributes="0"/>
+                  <Component id="btnTablaSimbolos1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="nuevoProyecto" max="32767" attributes="0"/>
+                  <Component id="impoexp" max="32767" attributes="0"/>
+                  <Component id="nuevo" max="32767" attributes="0"/>
+                  <Component id="abrir" max="32767" attributes="0"/>
+                  <Component id="guardar" max="32767" attributes="0"/>
+                  <Component id="guardarComo" max="32767" attributes="0"/>
+                  <Component id="cerrar" max="32767" attributes="0"/>
+                  <Component id="ejecutar" max="32767" attributes="0"/>
+                  <Component id="btnlogin" alignment="0" max="32767" attributes="0"/>
+                  <Component id="ejecutar1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jButton1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="importarDatos" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace pref="60" max="32767" attributes="0"/>
           </Group>
@@ -97,6 +95,10 @@
                       <Component id="btnTablaSimbolos" min="-2" pref="31" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnTablaSimbolos1" min="-2" pref="31" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jButton1" min="-2" pref="33" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="importarDatos" min="-2" pref="31" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -248,6 +250,22 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ejecutar1ActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="jButton1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Grafica"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="importarDatos">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Cargar Datos"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="importarDatosActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

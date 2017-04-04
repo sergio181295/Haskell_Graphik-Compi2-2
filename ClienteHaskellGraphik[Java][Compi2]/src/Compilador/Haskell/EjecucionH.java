@@ -22,12 +22,15 @@ public class EjecucionH {
     static String valorCase = "";
     static boolean salir = false;
     public static String ultimoValor = "";
+    public static Dato retornableD = new Dato();
     public static Dato Ejecutar(NodoParser nodo){
         switch (nodo.nombre) {
             case "codigo":
+                ambitos.add("global");
                 for (NodoParser n : nodo.hijos) {
                     Ejecutar(n);
                 }
+                ambitos.remove("global");
                 break;
             case "SI":{
                 cif++;
@@ -72,6 +75,7 @@ public class EjecucionH {
             }
             case "lista":{
                 Dato d = Ejecutar(nodo.hijos.get(0));
+                retornableD = d;
                 imprimir = d.toStringH();
                 return d;
             }
@@ -93,7 +97,9 @@ public class EjecucionH {
                 Ejecutar(ins);
                 Analizador.tablaH.eliminarPorAmbito(fun);
                 ambitos.remove(ambitos.size()-1);
-                return new Dato(imprimir);
+                Dato aux = new Dato(imprimir);
+                retornableD = aux;
+                return aux;
             }
             case "enviados":{
                 String[] p = pactivos.split(",");
@@ -109,42 +115,49 @@ public class EjecucionH {
                 String fun = nodo.hijos.get(0).nombre;
                 if(fun.equals("CALCULAR")){
                     Dato d = Ejecutar(nodo.hijos.get(1));
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("SUCC")){
                     float val = Float.parseFloat(Ejecutar(nodo.hijos.get(1)).valor)+1;
                     Dato d = new Dato(String.valueOf(val));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("DECC")){
                     float val = Float.parseFloat(Ejecutar(nodo.hijos.get(1)).valor)-1;
                     Dato d = new Dato(String.valueOf(val));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("MIN")){
                     float v1 = Ejecutar(nodo.hijos.get(1)).getMin(320000);
                     Dato d = new Dato(String.valueOf(v1));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("MAX")){
                     float v1 = Ejecutar(nodo.hijos.get(1)).getMax(-320000);
                     Dato d = new Dato(String.valueOf(v1));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("SUM")){
                     float v1 = Ejecutar(nodo.hijos.get(1)).Sum();
                     Dato d = new Dato(String.valueOf(v1));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("PRODUCT")){
                     float v1 = Ejecutar(nodo.hijos.get(1)).Mult();
                     Dato d = new Dato(String.valueOf(v1));
                     d.tipo = "numero";
+                    retornableD = d;
                     imprimir = d.toStringH();
                     return d;
                 }else if(fun.equals("REVERS")){
@@ -169,6 +182,7 @@ public class EjecucionH {
                         }
                     }
                     imprimir = d.toStringH();
+                    retornableD = d;
                     return d;
                 }else if(fun.equals("IMPR")){
                     Dato d = new Dato();
@@ -194,6 +208,7 @@ public class EjecucionH {
                         }
                     }
                     imprimir = d.toStringH();
+                    retornableD = d;
                     return d;
                 }else if(fun.equals("PAR")){
                     Dato d = new Dato();
@@ -219,6 +234,7 @@ public class EjecucionH {
                         }
                     }
                     imprimir = d.toStringH();
+                    retornableD = d;
                     return d;
                 }else if(fun.equals("ASC")){
                     Dato d = Ejecutar(nodo.hijos.get(1));
@@ -234,6 +250,7 @@ public class EjecucionH {
                             nuevo.addDato(da);
                         }
                         imprimir = nuevo.toStringH();
+                        retornableD = d;
                         return nuevo;
                     }else if(d.esCadena()){
                         ArrayList<String> l = new ArrayList<>();
@@ -248,6 +265,7 @@ public class EjecucionH {
                             nuevo.addDato(da);
                         }
                         imprimir = nuevo.toStringH();
+                        retornableD = d;
                         return nuevo;
                     }
                     ArrayList<String> l = new ArrayList<>();
@@ -261,6 +279,7 @@ public class EjecucionH {
                         nuevo.addDato(da);
                     }
                     imprimir = nuevo.toStringH();
+                    retornableD = nuevo;
                     return nuevo;
                 }else if(fun.equals("DESC")){
                     Dato d = Ejecutar(nodo.hijos.get(1));
@@ -276,6 +295,7 @@ public class EjecucionH {
                             Dato da = new Dato(String.valueOf(l.get(i)));
                             nuevo.addDato(da);
                         }
+                        retornableD = nuevo;
                         imprimir = nuevo.toStringH();
                         return nuevo;
                     }else if(d.esCadena()){
@@ -292,6 +312,7 @@ public class EjecucionH {
                             nuevo.addDato(da);
                         }
                         imprimir = nuevo.toStringH();
+                        retornableD = nuevo;
                         return nuevo;
                     }
                     ArrayList<String> l = new ArrayList<>();
@@ -306,6 +327,7 @@ public class EjecucionH {
                         nuevo.addDato(da);
                     }
                     imprimir = nuevo.toStringH();
+                    retornableD = nuevo;
                     return nuevo;
                 }else if(fun.equals("LENGTH")){
                     Dato d = Ejecutar(nodo.hijos.get(1));
@@ -317,6 +339,7 @@ public class EjecucionH {
                     }
                     n.tipo = "numero";
                     imprimir = n.toStringH();
+                    retornableD = n;
                     return n;
                 }else if(fun.equals("LET")){
                     String nombre = nodo.hijos.get(1).valor;
@@ -324,6 +347,7 @@ public class EjecucionH {
                     NodoSimbolo n = new NodoSimbolo(nombre,"lista", "global", va,"haskell","publco");
                     Analizador.tablaH.insertar(n);
                     imprimir = va.toStringH();
+                    retornableD = va;
                     return va;
                 }
                 break;
@@ -345,6 +369,7 @@ public class EjecucionH {
                                 res.valor = s;
                                 res.tipo = "cadena";
                                 imprimir = res.toStringH();
+                                retornableD = res;
                                 return res;
                             }
                         }
@@ -363,6 +388,7 @@ public class EjecucionH {
                             res.addDato(new Dato(v2.valor));
                         }
                         imprimir = res.toStringH();
+                        retornableD = res;
                         return res;
                     }else if(op == "!!"){
                         float fl = Float.parseFloat(v2.valor);
@@ -370,21 +396,30 @@ public class EjecucionH {
                         Dato d = v1.lista.get(pos);
                         d.tipo = v1.tipo;
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "||"){
                         if(Boolean.parseBoolean(v1.valor) || Boolean.parseBoolean(v2.valor)){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "&&"){
                         if(Boolean.parseBoolean(v1.valor) && Boolean.parseBoolean(v2.valor)){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }
@@ -396,85 +431,116 @@ public class EjecucionH {
                     if(op == ">"){
                         if(a>b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "<"){
                         if(a<b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == ">="){
                         if(a>=b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "<="){
                         if(a<=b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "=="){
                         if(a==b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "!="){
                         if(a!=b){
                             imprimir = "True";
+                            Dato aux = new Dato("verdadero");
+                            retornableD = aux;
                             return new Dato("true");
                         }else{
                             imprimir = "False";
+                            Dato aux = new Dato("falso");
+                            retornableD = aux;
                             return new Dato("false");
                         }
                     }else if(op == "+"){
                         Dato d =  new Dato(String.valueOf(a+b));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "-"){
                         Dato d =  new Dato(String.valueOf(a-b));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "*"){
                         Dato d =  new Dato(String.valueOf(a*b));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "/"){
                         Dato d =  new Dato(String.valueOf(a/b));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "mod"){
                         Dato d =  new Dato(String.valueOf(a%b));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "sqrt"){
                         Dato d =  new Dato(String.valueOf(Math.pow(a,1/b)));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(op == "pot"){
                         Dato d =  new Dato(String.valueOf(Math.pow(a,b)));
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }
                 }else{
@@ -483,21 +549,25 @@ public class EjecucionH {
                         Dato d = new Dato(nodo.hijos.get(0).valor);
                         d.tipo = "cadena";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(nom.equals("NUMERO")){
                         Dato d = new Dato(nodo.hijos.get(0).valor);
                         d.tipo = "numero";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(nom.equals("CARACTER")){
                         Dato d = new Dato(nodo.hijos.get(0).valor);
                         d.tipo = "caracter";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(nom.equals("TRUE") || nom.equals("FALSE")){
                         Dato d = new Dato(nodo.hijos.get(0).valor);
                         d.tipo = "bool";
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }else if(nom.equals("%")){
                         imprimir = new Dato(ultimoValor).toStringH();
@@ -505,6 +575,7 @@ public class EjecucionH {
                     }else{
                         Dato d = Ejecutar(nodo.hijos.get(0));
                         imprimir = d.toStringH();
+                        retornableD = d;
                         return d;
                     }
                 }
@@ -527,6 +598,7 @@ public class EjecucionH {
                 Dato d = new Dato(String.valueOf(v*-1));
                 d.tipo = "numero";
                 imprimir = d.toStringH();
+                retornableD = d;
                 return d;
             }
             

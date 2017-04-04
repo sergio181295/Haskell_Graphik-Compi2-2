@@ -201,17 +201,29 @@ public class RecoleccionG {
                                     for (int j = 0; j < totalObjs; j++) {
                                         Dato aux = new Dato();
                                         for (NodoSimbolo a : atrs) {
-                                            Dato aux2 = a.dato.clonar();
+                                            Dato aux2; 
+                                            if(a.rol.equals("variable")){
+                                                aux2 = a.dato.clonar();
+                                            }else{
+                                                aux2 = new Dato("fucion");
+                                            }
                                             aux2.nombre = a.nombre;
                                             aux2.tipo = a.tipo;
                                             aux.addDato(aux2);
                                         }
+                                        aux.tipo = nuevo;
                                         val.addDato(aux);
                                     }
                                     val.valor = nombre;
+                                    val.tipo = nuevo;
                                 }else{
                                     for (NodoSimbolo a : atrs) {
-                                        Dato aux = a.dato.clonar();
+                                        Dato aux; 
+                                        if(a.rol.equals("variable")){
+                                            aux = a.dato.clonar();
+                                        }else{
+                                            aux = new Dato("funcion");
+                                        }
                                         aux.nombre = a.nombre;
                                         aux.tipo = a.tipo;
                                         val.addDato(aux);
@@ -242,6 +254,8 @@ public class RecoleccionG {
                         val.dimensiones.add(c);
                     }
                 }
+                lista.clear();
+                dimensiones.clear();
                 val.nombre = nombre;
                 NodoSimbolo ns = new NodoSimbolo(nombre, tipoActivo, "global", val, nombreClase, vis);
                 insertar(ns);

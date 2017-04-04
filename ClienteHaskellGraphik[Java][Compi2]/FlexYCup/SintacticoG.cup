@@ -467,9 +467,10 @@ hacer ::= HACER LLA1 sentencias:s LLA2 MIENTRAS PAR1 exp:e PAR2{:
 			RESULT.AgregarHijo(s);
 			:};
 
-grafica ::= GRAPHIKAR_FUNCION PAR1 exp:e PAR2{:
+grafica ::= GRAPHIKAR_FUNCION PAR1 exp:e COMA exp:e2 PAR2{:
 			RESULT = new NodoParser("grafica","grafica");
 			RESULT.AgregarHijo(e);
+			RESULT.AgregarHijo(e2);
 			:};
 
 exp ::= exp:e1 OR exp21:e2{:

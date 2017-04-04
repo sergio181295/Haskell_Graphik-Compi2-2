@@ -7,6 +7,7 @@ public class Dato {
     public String tipo = "nul";
     public String valor = "nul";
     public String nombre = "nul";
+    public String clase = "nul";
     
     public boolean esLista = false;
     public ArrayList<Dato> lista = new ArrayList<>();
@@ -24,6 +25,7 @@ public class Dato {
         d.nombre = this.nombre;
         d.esLista = this.esLista;
         d.contDim = this.contDim;
+        d.clase = this.clase;
         if(!lista.isEmpty()){
             for (Dato d1 : this.lista) {
                 Dato aux = d1.clonar();
