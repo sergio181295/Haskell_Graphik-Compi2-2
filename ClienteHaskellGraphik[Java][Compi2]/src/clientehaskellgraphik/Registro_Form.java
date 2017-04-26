@@ -134,8 +134,7 @@ public class Registro_Form extends javax.swing.JFrame {
                 + "}"
                 + "}";
         if(Boolean.parseBoolean(Conexion.Conectar(codigo))){
-            Ventana.nuevoProyecto.setEnabled(true);
-            Ventana.impoexp.setEnabled(true);
+            
             this.dispose();
         }else{
             JOptionPane.showMessageDialog(null, "El Usuario ya existe, intente de nuevo.", "Datos Incorrectos", JOptionPane.OK_OPTION);

@@ -7,7 +7,6 @@ import Compilador.token;
 import Tabla_Simbolos.Dato;
 import Tabla_Simbolos.NodoSimbolo;
 import clientehaskellgraphik.Ventana;
-import java.awt.Color;
 import java.awt.Desktop;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,20 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartFrame;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.StandardXYItemLabelGenerator;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 public class EjecucionG {
     public static boolean debuguear = false;
@@ -39,8 +25,8 @@ public class EjecucionG {
     static ArrayList<String> ambitos = new ArrayList<>();
     static ArrayList<String> clases = new ArrayList<>();
     static ArrayList<String> accesos = new ArrayList<>();
-    public static ArrayList<Dato> datos = new ArrayList<>();
-    static ArrayList<Dato> resultados = new ArrayList<>();
+    public static ArrayList<NodoSimbolo> datos = new ArrayList<>();
+    static ArrayList<NodoSimbolo> resultados = new ArrayList<>();
     //STRINGS AUXILIARES
     static String tipoActivo = "", valorSwitch = "";
     public static String imprimir = "";
@@ -55,10 +41,11 @@ public class EjecucionG {
     static boolean salir = false;
     static boolean continuar = false;
     static boolean retornar = false;
-    static boolean procesar = false;
+    static boolean procesar = false, llamadaH = false, llamadaG = false;
     //DATOS AUXILIARES
-    static Dato retornable = null;
-    static ArrayList<Dato> lista = new ArrayList<Dato>();
+    static NodoSimbolo retornable = null;
+    static NodoParser nodoAcceso;
+    static ArrayList<NodoSimbolo> lista = new ArrayList<>();
     public static Dato Ejecutar(NodoParser nodo){
         switch (nodo.nombre) {
             case "inicio":{//YA ESTUVO
@@ -66,6 +53,14 @@ public class EjecucionG {
                 ambitos.add("global");
                 ambitos.add("inicio");
                 NodoParser inicio = Analizador.tabla.getInstrucciones("inicio", "global","nul", claseInicio);
+                if(inicio == null){
+                    try{
+                        inicio = Analizador.tabla.getInstrucciones("Inicio", "global","nul", claseInicio);
+                        Ejecutar(inicio);
+                    }catch(Exception e){
+                        imprimir += "Falta declaracion del metodo 'Inicio'";
+                    }
+                }
                 Ejecutar(inicio);
                 break;
                 // </editor-fold>
@@ -74,10 +69,10 @@ public class EjecucionG {
                 // <editor-fold desc="sentencias">
                 for (NodoParser n : nodo.hijos) {
                     Ejecutar(n);
-//                    if(salir || retornar){
-//                        salir = false;
-//                        break;
-//                    }
+                    if(salir || retornar){
+                        salir = false;
+                        break;
+                    }
                 }
                 break;
                 // </editor-fold>
@@ -260,32 +255,6 @@ public class EjecucionG {
                 }
                 Ventana.lineas.addSeries(serie);
                 
-//                XYSeriesCollection lineas = new XYSeriesCollection();
-//                lineas.addSeries(serie);
-//                
-//                
-//                JFreeChart grafica = ChartFactory.createXYLineChart(
-//        "Grafica" , "X", "Y", lineas, PlotOrientation.VERTICAL,  true, true, false);               
-//
-//        //personalización del grafico
-//        XYPlot xyplot = (XYPlot) grafica.getPlot();
-//        xyplot.setBackgroundPaint( Color.white );
-//        xyplot.setDomainGridlinePaint( Color.BLACK );
-//        xyplot.setRangeGridlinePaint( Color.BLACK );        
-//        // -> Pinta Shapes en los puntos dados por el XYDataset
-//        XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();
-//        xylineandshaperenderer.setBaseShapesVisible(true);
-//        //--> muestra los valores de cada punto XY
-//        XYItemLabelGenerator xy = new StandardXYItemLabelGenerator();
-//        xylineandshaperenderer.setBaseItemLabelGenerator( xy );
-//        xylineandshaperenderer.setBaseItemLabelsVisible(true);
-//         xylineandshaperenderer.setBaseLinesVisible(true);
-//         xylineandshaperenderer.setBaseItemLabelsVisible(true);
-//         
-//         ChartFrame graf = new ChartFrame("Grafica",grafica);
-//         graf.pack();
-//         graf.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-//         graf.setVisible(true);
                 break;
                 // </editor-fold>
             }
@@ -495,6 +464,7 @@ public class EjecucionG {
                         }
                     }
                 }else{
+                    //retornar = false;
                     coordenadas.clear();
                     Dato auxActual = new Dato();
                     Dato auxAnterior = new Dato();
@@ -633,11 +603,19 @@ public class EjecucionG {
                                 }
                                 coordenadas.clear();
                             }  
-                            retornar = false;
+                            
                             contador++;
                             addAmbito("fun"+contador);
 //                            String nom = auxActual.nombre;
                             if(actual.nombre.equals("enviados")){
+                                if(procesar){
+                                    nodoAcceso = nodo.clonar();
+                                    llamadaG = true;
+                                    funHaskell = accesoActivo;
+                                    Ejecutar(actual);
+                                    
+                                    break;
+                                }
                                 Ejecutar(actual);
                                 String parametros;
                                 if(primero){
@@ -671,7 +649,11 @@ public class EjecucionG {
                             }
                             Ejecutar(ins);
                             auxActual = retornable;
-                            eliminarAmbito();
+                            retornar = false;
+                            if(!primero){
+                                eliminarAmbito();
+                            }
+                            
                             eliminarAmbito();
                             esFun = true;
                             //</editor-fold>
@@ -715,6 +697,7 @@ public class EjecucionG {
                 // <editor-fold desc="llamadaH">
                 if(procesar){
                     funHaskell = nodo.hijos.get(0).valor;
+                    llamadaH = true;
                     Ejecutar(nodo.hijos.get(1));
                     break;
                 }
@@ -750,7 +733,8 @@ public class EjecucionG {
             }
             case "enviados":{//YA ESTUVO
                 // <editor-fold desc="enviados">
-                if(procesar){
+                if(procesar && llamadaH){
+                    //<editor-fold desc="haskell">
                     int x = Ejecutar(nodo.hijos.get(0)).lista.size();
                     for (int i = 0; i < x; i++) {
                                 contador++;
@@ -780,6 +764,246 @@ public class EjecucionG {
                                 eliminarAmbito();
                                 resultados.add(d);
                     }
+                    procesar = false;
+                    llamadaH = false;
+                    break;
+                    //</editor-fold>
+                }else if(procesar && llamadaG){
+                    // <editor-fold desc="acceso">
+                    int x = Ejecutar(nodo.hijos.get(0)).lista.size();
+                    for (int ii = 0; ii < x; ii++) {
+                        if(nodo.contador == 1){
+                            String nom = nodo.hijos.get(0).valor;
+                            int tam = ambitos.size()-1;
+                            Dato d;
+                            for (int i = tam;i>=0 ;i--) {
+                                String amb = ambitos.get(i);
+                                if((d = Analizador.tabla.getValor(nom, amb, claseInicio))!=null){
+                                    return d;
+                                }
+                            }
+                        }else{
+                            //retornar = false;
+                            coordenadas.clear();
+                            Dato auxActual = new Dato();
+                            Dato auxAnterior = new Dato();
+                            boolean esArreglo = false, esFun = false, primero = true;
+                            for (int i = 0;i<nodoAcceso.contador;i++) {
+                                NodoParser actual = nodoAcceso.hijos.get(i);
+                                String s = actual.nombre;
+                                if(s.equals("ID")) {
+                                    accesoActivo = actual.valor;
+                                    //auxActual.nombre = accesoActivo;
+                                    //auxActual.tipo = claseInicio;
+                                    claseActiva = claseInicio;
+                                }else if(s.equals("PUNTO")){
+                                    //<editor-fold desc="PUNTO">
+                                    String nomNuevo = actual.valor;
+                                    int tam = ambitos.size()-1;
+                                    int tam2 = clases.size();
+                                    if(esArreglo){
+                                        esArreglo = false;
+                                        if(primero){
+                                            for (int i2 = tam;i2>=0 ;i2--) {
+                                                String amb = ambitos.get(i2);
+                                                for (int j = 0; j < tam2; j++) {
+                                                    String clase = clases.get(j);
+                                                    Dato aux2 = Analizador.tabla.getValor(accesoActivo, amb, clase);
+                                                    if(aux2!=null){
+                                                        auxAnterior = aux2;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            auxActual = auxAnterior.getDeLista(coordenadas);
+                                            primero  = false;
+                                        }else{
+                                            //auxAnterior = auxActual;
+                                            auxActual = auxActual.getDeLista(coordenadas);
+                                        }
+                                        coordenadas.clear();
+                                    }else{
+                                    }
+                                    boolean encontrado = false;
+                                    String nom =accesoActivo;
+                                    String rol = "rol";
+
+                                    for (int i2 = tam;i2>=0 ;i2--) {
+                                        String amb = ambitos.get(i2);
+                                        for (int j = 0; j < tam2; j++) {
+                                            String clase = clases.get(j);
+                                            if((rol = Analizador.tablaImport.getRol(nomNuevo, amb, clase))!=null){
+                                                encontrado = true;
+                                                break;
+                                            }
+                                        }
+                                        if(encontrado){
+                                            break;
+                                        }
+                                    }
+                                    encontrado = false;
+                                    if(!rol.equals("variable")){
+                                        if(primero){
+                                            for (int i2 = tam;i2>=0 ;i2--) {
+                                                String amb = ambitos.get(i2);
+                                                for (int j = 0; j < tam2; j++) {
+                                                    String clase = clases.get(j);
+                                                    Dato aux2 = Analizador.tabla.getValor(nom, amb, clase);
+                                                    if(aux2!=null){
+                                                        auxActual = aux2;
+                                                        encontrado = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            primero  = false;
+                                        }
+                                        auxAnterior = auxActual;
+                                        accesoActivo = actual.valor;
+                                        //auxActual.nombre = accesoActivo;
+                                        //auxActual.valor = "funcion";
+                                    }else{
+                                        if(primero){
+                                            for (int i2 = tam;i2>=0 ;i2--) {
+                                                String amb = ambitos.get(i2);
+                                                for (int j = 0; j < tam2; j++) {
+                                                    String clase = clases.get(j);
+                                                    Dato aux2 = Analizador.tabla.getValor(nom, amb, clase);
+                                                    if(aux2!=null){
+                                                        auxAnterior = aux2;
+                                                        encontrado = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            primero  = false;
+                                        }else{
+                                            auxAnterior = auxActual;
+                                            encontrado = true;
+                                        }
+                                        if(encontrado){
+                                            auxActual = auxAnterior.getAtributo(nomNuevo);
+                                        }else{
+                                            //REPORTAR 
+                                        }
+                                        accesoActivo = nomNuevo;
+                                    }
+                                    //</editor-fold>
+                                }else if(s.equals("DIMENSION")){
+                                    //<editor-fold desc="DIMENSION">
+                                    NodoParser n2 = actual.hijos.get(0);
+                                    float f = Float.parseFloat(Ejecutar(n2).toString());
+                                    int dim = Math.round(f);
+                                    coordenadas.add(dim);
+                                    esArreglo = true;
+                                    //</editor-fold>
+                                }else{
+                                    //<editor-fold desc="SI ES FUNCION">
+                                    int tam = ambitos.size()-1;
+                                    int tam2 = clases.size();
+                                    if(esArreglo){
+                                        esArreglo = false;
+                                        if(primero){
+                                            for (int i2 = tam;i2>=0 ;i2--) {
+                                                String amb = ambitos.get(i2);
+                                                for (int j = 0; j < tam2; j++) {
+                                                    String clase = clases.get(j);
+                                                    Dato aux2 = Analizador.tabla.getValor(accesoActivo, amb, clase);
+                                                    if(aux2!=null){
+                                                        auxAnterior = aux2;
+                                                        //auxAnterior.tipo = aux2.tipo;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            auxActual = auxAnterior.getDeLista(coordenadas);
+                                        }else{
+                                            auxActual = auxActual.getDeLista(coordenadas);
+                                        }
+                                        coordenadas.clear();
+                                    }  
+
+                                    contador++;
+                                    addAmbito("fun"+contador);
+        //                            String nom = auxActual.nombre;
+                                    if(actual.nombre.equals("enviados")){
+                                        procesar = false;
+                                        Ejecutar(actual);
+                                        procesar = true;
+                                        String parametros;
+                                        if(primero){
+                                            parametros = Analizador.tabla.getParametros(accesoActivo, "global", sobrecarga, claseInicio);
+                                        }else{
+                                            parametros = Analizador.tablaImport.getParametros(accesoActivo, "global", sobrecarga, auxAnterior.tipo);
+                                        }
+                                        String[] so = sobrecarga.split(",");
+                                        String[] p = parametros.split(",");
+                                        
+                                        //String[] e = enviados.split(",");
+                                        String amb = ambitos.get(ambitos.size()-1);
+                                        for(int i2 = 0;i2 < p.length;i2++){
+                                            Dato col = Ejecutar(nodoAcceso.hijos.get(i2));
+                                            Dato d;
+                                            if(col.esLista){
+                                                d = col.lista.get(ii);
+                                            }else{
+                                                d = col;
+                                            }
+                                            NodoSimbolo n = new NodoSimbolo(p[i2], so[i2], amb, d,claseInicio,"publico");
+                                            Analizador.tablaH.insertar(n);
+                                        }
+
+                                    }else{
+                                        sobrecarga = "nul";
+                                    }
+                                    if(!primero){
+                                        String amb = auxAnterior.nombre;
+                                        addAmbito(amb);
+                                        agregarAtributosTemporles(auxActual.lista, amb);
+                                    }
+                                    NodoParser ins;
+                                    if(primero){
+                                        ins = Analizador.tabla.getInstrucciones(accesoActivo, "global", sobrecarga, claseInicio);
+                                    }else{
+                                        ins = Analizador.tablaImport.getInstrucciones(accesoActivo, "global", sobrecarga, auxAnterior.tipo);
+                                    }
+                                    Ejecutar(ins);
+                                    auxActual = retornable;
+                                    Dato res = retornable.clonar();
+                                    resultados.add(res);
+                                    retornar = false;
+                                    if(!primero){
+                                        eliminarAmbito();
+                                    }
+
+                                    eliminarAmbito();
+                                    esFun = true;
+                                    //</editor-fold>
+                                }
+                            }
+                            if(esArreglo){
+                                esArreglo = false;
+                                String am = ambitos.get(ambitos.size()-1);
+                                Dato d;
+                                int tam = ambitos.size()-1;
+                                for (int i = tam;i>=0 ;i--) {
+                                    String amb = ambitos.get(i);
+                                    if((d = Analizador.tabla.getValor(accesoActivo, amb, claseInicio))!=null){
+                                        auxActual = d .getDeLista(coordenadas);
+                                    }
+                                }
+                            }else if(esFun){
+
+                            }
+                            return auxActual;
+                            //TAMBIEN HAY QUE AGREGAR A LA TABLA LOS ATRIBUTOS DE CADA CLASE AL CREAR U OBJETO COMO AMBITO EL ONMBRE DEL OBJETO
+                        }
+                        procesar = false;
+                        llamadaG = false;
+                        
+                        // </editor-fold>
+                    }
+                    break;
                 }else{
                     enviados = "";
                     sobrecarga = "";

@@ -1,6 +1,5 @@
 package Tabla_Simbolos;
 
-import Compilador.Analizador;
 import Compilador.Graphik.EjecucionG;
 import Compilador.NodoParser;
 import Compilador.token;
@@ -72,21 +71,28 @@ public class TablaSimbolos {
         }
     }
 
-    public int existe(String nombre, String ambito, String sobrecarga, String rol, String clase) {
-        int salida = -1;
+    public int existe(String nombre, String ambito, String clase) {
         for (int i = 0; i < tamaño; i++) {
             if (tabla[i] != null) {
-                if (!tabla[i].eliminado && tabla[i].nombre.equals(nombre) && tabla[i].ambito.equals(ambito) && tabla[i].sobrecarga.equals(sobrecarga) && tabla[i].rol.equals(rol) && tabla[i].clase.equals(clase)) {
-                    salida = i;
+                if (!tabla[i].eliminado && tabla[i].nombre.equals(nombre) && tabla[i].ambito.equals(ambito) && tabla[i].clase.equals(clase)) {
+                    return i;
                 }
             }
         }
-        return salida;
+        return -1;
     }
     
-    public String getTipo(String nombre, String ambito, String sobrecarga, String rol, String clase) {
+    public NodoSimbolo getSimbolo(String nombre, String ambito, String clase){
+        int pos = existe(nombre, ambito, clase);
+        if(pos != -1){
+            return tabla[pos];
+        }
+        return null;
+    }
+    
+    public String getTipo(String nombre, String ambito, String sobrecarga, String clase) {
         String salida = "-";
-        int pos = existe(nombre, ambito, sobrecarga, rol, clase);
+        int pos = existe(nombre, ambito, sobrecarga,clase);
         if (pos != -1) {
             salida = tabla[pos].tipo;
         } else {
@@ -106,7 +112,7 @@ public class TablaSimbolos {
         return null;
     }
     
-    public Dato getValor(String nombre, String ambito, String clase) {
+    public NodoSimbolo getValor(String nombre, String ambito, String clase) {
         int pos = existe(nombre, ambito, "nul", "variable", clase);
         if (pos != -1) {
             return tabla[pos].dato;
@@ -193,6 +199,18 @@ public class TablaSimbolos {
         for (NodoSimbolo n : tabla) {
             if(n != null){
                 if(n.clase.equals(clase) && !n.tipo.equals(token.als)){
+                    salida.add(n);
+                }
+            }
+        }
+        return salida;
+    }
+    
+    public ArrayList<NodoSimbolo> getFunH(){
+        ArrayList<NodoSimbolo> salida = new ArrayList<>();
+        for (NodoSimbolo n : tabla) {
+            if(n!= null){
+                if(n.clase.equals("haskell")&&n.rol.equals("funcion")){
                     salida.add(n);
                 }
             }

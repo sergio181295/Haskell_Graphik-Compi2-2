@@ -1,5 +1,9 @@
 package clientehaskellgraphik;
 
+import Compilador.Analizador;
+import Tabla_Simbolos.NodoSimbolo;
+import java.util.ArrayList;
+
 public class ImportarExportar_Form extends javax.swing.JFrame {
 
     public ImportarExportar_Form() {
@@ -28,6 +32,11 @@ public class ImportarExportar_Form extends javax.swing.JFrame {
         jButton1.setText("Importar");
 
         jButton2.setText("Exportar");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -60,6 +69,28 @@ public class ImportarExportar_Form extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        String nombre = jComboBox1.getSelectedItem().toString();
+        String codigo = "Proyecto "+nombre+" = [";
+        ArrayList<NodoSimbolo> lista = Analizador.tablaH.getFunH();
+        for (NodoSimbolo n : lista) {
+            codigo+="{"
+                    + "nombre_funcion = \""+nombre+"\";"
+                    + "parametros_fun = \"{";
+            String[] param = n.parametros.split(",");
+            for (int i = 0; i < param.length; i++) {
+                codigo += "("+param[i]+",int),";
+            }
+            codigo = codigo.substring(0,codigo.length()-1);
+            codigo+="};"
+                    + "retorno_funcion = {(retorno,int)};"
+                    + "cuerpo_funcion: ¿";
+            
+        }
+        codigo += "]";
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {

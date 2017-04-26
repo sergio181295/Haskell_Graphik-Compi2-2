@@ -34,7 +34,7 @@ public class Ventana extends javax.swing.JFrame {
     public Ventana() {
         initComponents();
         this.setLocationRelativeTo(null);
-        File archivo = new File("C:\\Users\\Sergio\\Desktop\\prueba.gk");//C:\\Users\\pipaa\\Desktop
+        File archivo = new File("C:\\Users\\pipaa\\Desktop\\hp_sergio\\prueba.gk");//C:\\Users\\pipaa\\Desktop
         FileReader fr;
         try {
             fr = new FileReader (archivo.getPath());
@@ -312,7 +312,7 @@ public class Ventana extends javax.swing.JFrame {
 
     private void abrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_abrirActionPerformed
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("C:\\Users\\Sergio\\Desktop"));
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\pipaa\\Desktop"));
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File archivo = fileChooser.getSelectedFile();
@@ -357,7 +357,7 @@ public class Ventana extends javax.swing.JFrame {
 
     private void ejecutarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ejecutarActionPerformed
         String texto = getTextBox(Nombres.get(pestañas.getSelectedIndex())).getText();
-        Analizador.compilarH(texto);
+        Analizador.compilarH(texto,true);
     }//GEN-LAST:event_ejecutarActionPerformed
 
     private void entradaComandoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_entradaComandoKeyPressed
@@ -427,7 +427,7 @@ public class Ventana extends javax.swing.JFrame {
         // TODO add your handling code here:
         boolean esEncabezado = true;
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new File("C:\\Users\\Sergio\\Desktop"));
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\pipaa\\Desktop"));
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File archivo = fileChooser.getSelectedFile();

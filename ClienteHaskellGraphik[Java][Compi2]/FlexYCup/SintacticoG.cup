@@ -332,7 +332,7 @@ sentencia ::= declaracion:e PUNTOYCOMA{:RESULT = e;:}
 			|seleccion:e{:RESULT = e;:}
 			|para:e{:RESULT = e;:}
 			|mientras:e{:RESULT = e;:}
-			|hacer:e{:RESULT = e;:}
+			|hacer:e PUNTOYCOMA{:RESULT = e;:}
 			|CONTINUAR PUNTOYCOMA{:
 				RESULT = new NodoParser("CONTINUAR","CONTINUAR");
 				:}
@@ -597,7 +597,7 @@ exp6 ::= exp6:e1 POR exp7:e2{:
 
 exp7 ::= exp7:e1 POT exp8:e2{:
 			RESULT = new NodoParser("exp","exp");
-			NodoParser n = new NodoParser("POT","pot");
+			NodoParser n = new NodoParser("POT","^");
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);

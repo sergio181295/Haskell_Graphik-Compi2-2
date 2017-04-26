@@ -20,6 +20,10 @@ parser code {:
     }
 :};
 
+action code{:
+	String codigo = "";
+:};
+
 terminal String DOLAR, MOD, SQRT, POT, CALCULAR, SUCC, DECC, MIN, MAX, SUM, PRODUCT;
 terminal String REVERS, IMPR, PAR, ASC, DESC, LENGTH, END, PORCENTAJE, MASMAS, EXCLAMACION;
 terminal String SI, ENTONCES, SINO, SELECCIONA, DOSPUNTOS, LET;  
@@ -52,6 +56,7 @@ haskell ::= haskell:h funcion:f{:
 			|funcion:f{:
 				RESULT = new NodoParser("inicio","inicio");
 				RESULT.AgregarHijo(f);
+				RESULT = f.codigo;
 				:};		
 
 funcion ::= ID:id idss:i IGUAL codigo:c END{:
@@ -60,6 +65,7 @@ funcion ::= ID:id idss:i IGUAL codigo:c END{:
 				RESULT.AgregarHijo(nom);
 				RESULT.AgregarHijo(i);
 				RESULT.AgregarHijo(c);
+				Analizador.codigoHaskell = c.codigo;
 				:};
 
 idss ::= idss:i COMA ID:id{:
@@ -76,30 +82,35 @@ idss ::= idss:i COMA ID:id{:
 codigo ::= codigo:c instrucciones:i{:
 				RESULT = c;
 				RESULT.AgregarHijo(i);
+				RESULT.codigo += " "+i.codigo;
 				:}
 			|instrucciones:i{:
 				RESULT = new NodoParser("codigo","codigo");
 				RESULT.AgregarHijo(i);
+				RESULT.codigo = i.codigo;
 				:};
 
-instrucciones ::= si:x END{:RESULT = x;:}
-				|selecciona:x END{:RESULT = x;:}
-				|exp:x{:RESULT = x;:};
+instrucciones ::= si:x END{:RESULT = x; RESULT.codigo = x.codigo;:}
+				|selecciona:x END{:RESULT = x; RESULT.codigo = x.codigo;:}
+				|exp:x{:RESULT = x; RESULT.codigo = x.codigo;:};
 
 si ::=  si:s SINO codigo:c{:
 			RESULT = s;
 			RESULT.AgregarHijo(c);
+			RESULT.codigo += " sino "+c.codigo; 
 			:}
 		|SI exp:e ENTONCES codigo:c{:
 			RESULT = new NodoParser("SI","SI");
 			RESULT.AgregarHijo(e);
 			RESULT.AgregarHijo(c);
+			RESULT.codigo = " SI "+e.codigo+" ENTONCES "+c.codigo;
 			:};
 
 selecciona ::= SELECCIONA exp:e casos:c{:
 				RESULT = new NodoParser("SELECCIONA","SELECCIONA");
 				RESULT.AgregarHijo(e);
 				RESULT.AgregarHijo(c);
+				RESULT.codigo = " selecciona " +e.codigo+" " + c.codigo;
 				:};
 
 casos ::= casos:r1 exp:e DOSPUNTOS codigo:c PUNTOYCOMA{:
@@ -108,6 +119,7 @@ casos ::= casos:r1 exp:e DOSPUNTOS codigo:c PUNTOYCOMA{:
 				n.AgregarHijo(e);
 				n.AgregarHijo(c);
 				RESULT.AgregarHijo(n);
+				RESULT.codigo = RESULT.codigo + e.codigo + ": "+ c.codigo + "; ";
 				:}
 			|exp:e DOSPUNTOS codigo:c PUNTOYCOMA{:
 				RESULT = new NodoParser("casos","casos");
@@ -115,6 +127,7 @@ casos ::= casos:r1 exp:e DOSPUNTOS codigo:c PUNTOYCOMA{:
 				n.AgregarHijo(e);
 				n.AgregarHijo(c);
 				RESULT.AgregarHijo(n);
+				RESULT.codigo = e.codigo +" : "+c.codigo+" ; ";
 				:};
 
 
@@ -124,6 +137,7 @@ exp ::= exp:e1 MASMAS  exp2:e2{:
 		RESULT.AgregarHijo(e1);
 		RESULT.AgregarHijo(n);
 		RESULT.AgregarHijo(e2);
+		RESULT.codigo = e1.codigo + "++" + e2.codigo;
 		:}
     |exp:e1 EXCLAMACION exp2:e2{:
     	RESULT = new NodoParser("exp","exp");
@@ -131,9 +145,11 @@ exp ::= exp:e1 MASMAS  exp2:e2{:
 		RESULT.AgregarHijo(e1);
 		RESULT.AgregarHijo(n);
 		RESULT.AgregarHijo(e2);
+		RESULT.codigo = e1.codigo + "!!" + e2.codigo;
     	:}
     |exp2:e{:
     	RESULT = e;
+    	RESULT.codigo = e.codigo;
     	:};
 
 exp2 ::= exp2:e1 OR exp3:e2{:
@@ -142,9 +158,11 @@ exp2 ::= exp2:e1 OR exp3:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "||" + e2.codigo;
 			:}
 		|exp3:e{:
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp3 ::= exp3:e1 AND exp4:e2{:
@@ -153,9 +171,11 @@ exp3 ::= exp3:e1 AND exp4:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "&&" + e2.codigo;
 			:}
 		|exp4:e{:
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp4 ::= exp4:e1 MAYOR exp5:e2{:
@@ -164,6 +184,7 @@ exp4 ::= exp4:e1 MAYOR exp5:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + ">" + e2.codigo;
 			:}
 		|exp4:e1 MENOR exp5:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -171,6 +192,7 @@ exp4 ::= exp4:e1 MAYOR exp5:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "<" + e2.codigo;
 			:}
 		|exp4:e1 MAYORIGUAL exp5:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -178,19 +200,23 @@ exp4 ::= exp4:e1 MAYOR exp5:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + ">=" + e2.codigo;
 			:}
 		|exp4:e1 MENORIGUAL exp5:e2{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("MENORIGUAL","<=");
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
-			RESULT.AgregarHijo(e2);:}
+			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "<=" + e2.codigo;
+			:}
 		|exp4:e1 IGUALIGUAL exp5:e2{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("IGUALIGUAL","==");
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "==" + e2.codigo;
 			:}
 		|exp4:e1 NOIGUAL exp5:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -198,9 +224,11 @@ exp4 ::= exp4:e1 MAYOR exp5:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "!=" + e2.codigo;
 			:}
 		|exp5:e{:
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp5 ::= exp5:e1 MAS exp6:e2{:
@@ -209,6 +237,7 @@ exp5 ::= exp5:e1 MAS exp6:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "+" + e2.codigo;
 			:}
 		|exp5:e1 MENOS exp6:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -216,9 +245,11 @@ exp5 ::= exp5:e1 MAS exp6:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "-" + e2.codigo;
 			:}
 		|exp6:e{:
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp6 ::= exp6:e1 POR exp7:e2{:
@@ -227,6 +258,7 @@ exp6 ::= exp6:e1 POR exp7:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "*" + e2.codigo;
 			:}
 		|exp6:e1 DIV exp7:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -234,6 +266,7 @@ exp6 ::= exp6:e1 POR exp7:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + "/" + e2.codigo;
 			:}
 		|exp6:e1 MOD exp7:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -241,9 +274,11 @@ exp6 ::= exp6:e1 POR exp7:e2{:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + " 'mod' " + e2.codigo;
 			:}
 		|exp7:e{: 
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp7 ::= exp7:e1 SQRT exp8:e2 {:
@@ -252,6 +287,7 @@ exp7 ::= exp7:e1 SQRT exp8:e2 {:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + " 'sqrt' " + e2.codigo;
 			:}
 		|exp7:e1 POT exp8:e2{:
 			RESULT = new NodoParser("exp","exp");
@@ -259,64 +295,78 @@ exp7 ::= exp7:e1 SQRT exp8:e2 {:
 			RESULT.AgregarHijo(e1);
 			RESULT.AgregarHijo(n);
 			RESULT.AgregarHijo(e2);
+			RESULT.codigo = e1.codigo + " 'pot' " + e2.codigo;
 			:}
 		|exp8:e{:
 			RESULT = e;
+			RESULT.codigo = e.codigo;
 			:};
 
 exp8 ::= CADENA:id{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("CADENA",id);
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = id;
 			:}
 		|NUMERO:id{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("NUMERO",id);
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = id;
 			:}
 		|CARACTER:id{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("CARACTER",id);
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = id;
 			:}
 		|TRUE{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("TRUE","true");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = "true";
 			:}
 		|FALSE{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("FALSE","false");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = "false";
 			:}
 		|DOLAR funPropias:n DOLAR{:
 			RESULT = new NodoParser("exp","exp");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = " $"+n.codigo+"$ ";
 			:}
 		|ID:id{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("ID",id);
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = id;
 			:}
 		|lista:n{:
 			RESULT = new NodoParser("exp","exp");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = n.codigo;
 			:}
 		|llamada:n{:
 			RESULT = new NodoParser("exp","exp");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = n.codigo;
 			:}
 		|PORCENTAJE{:
 			RESULT = new NodoParser("exp","exp");
 			NodoParser n = new NodoParser("%","%");
 			RESULT.AgregarHijo(n);
+			RESULT.codigo = "%";
 			:}
 		|PAR1 exp:e PAR2{:
 			RESULT = e;
+			RESULT.codigo = " ("+e.codigo+") ";
 			:}
 		|MENOS exp8:e{:
 			RESULT = new NodoParser("unario","unario");
 			RESULT.AgregarHijo(e);
+			RESULT.codigo = "-"+e.codigo;
 			:};
 
 llamada ::= DOLAR ID:id LLA1 enviados:l LLA2 DOLAR{:
@@ -324,30 +374,36 @@ llamada ::= DOLAR ID:id LLA1 enviados:l LLA2 DOLAR{:
 					NodoParser n = new NodoParser("ID",id);
 					RESULT.AgregarHijo(n);
 					RESULT.AgregarHijo(l);
+					RESULT.codigo  = "$"+id+"{"+enviados.codigo+"}$";
 				:};
 
 enviados ::= enviados:l COMA exp:e{:
 				RESULT = l;
 				RESULT.AgregarHijo(e);
+				RESULT.codigo = RESULT.codigo + ", "+ e.codigo;
 				:}
 			|exp:e{:
 				RESULT = new NodoParser("enviados","enviados");
 				RESULT.AgregarHijo(e);
+				RESULT.codigo = e.codigo;
 				:};
 
 
 lista ::= COR1 listaExp:l COR2{:
 				RESULT = new NodoParser("lista","lista");
 				RESULT.AgregarHijo(l);
+				RESULT.codigo = "["+l.codigo+"]";
 			:};
 
 listaExp ::= listaExp:l COMA exp:e{:
 				RESULT = l;
 				RESULT.AgregarHijo(e);
+				RESULT.codigo = RESULT.codigo + ", "+e.codigo;
 				:}
 			|exp:e{:
 				RESULT = new NodoParser("listaExp","listaExp");
 				RESULT.AgregarHijo(e);
+				RESULT.codigo = e.codigo;
 				:};
 
 funPropias ::= LET ID:id IGUAL exp:e{:
@@ -357,82 +413,96 @@ funPropias ::= LET ID:id IGUAL exp:e{:
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(n);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " LET "+id+" = "+e.codigo;
 					:}
 				|CALCULAR:x exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("CALCULAR","CALCULAR");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " CALCULAR "+e.codigo;
 					:}
 				|SUCC:x exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("SUCC","SUCC");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " SUCC "+e.codigo;
 					:}
 				|DECC exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("DECC","DECC");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " DECC "+e.codigo;
 					:}
 				|MIN exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("MIN","MIN");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " MIN "+e.codigo;
 					:}
 				|MAX exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("MAX","MAX");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " MAX "+e.codigo;
 					:}
 				|SUM exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("SUM","SUM");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " SUM "+e.codigo;
 					:}
 				|PRODUCT exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("PRODUCT","PRODUCT");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " PRODUCT "+e.codigo;
 					:}
 				|REVERS exp:e {:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("REVERS","REVERS");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " REVERS "+e.codigo;
 					:}
 				|IMPR exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("IMPR","IMPR");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " IMPR "+e.codigo;
 					:}
 				|PAR exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("PAR","PAR");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " PAR "+e.codigo;
 					:}
 				|ASC exp:e {:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("ASC","ASC");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " ASC "+e.codigo;
 					:}
 				|DESC exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("DESC","DESC");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " DESC "+e.codigo;
 					:}
 				|LENGTH exp:e{:
 					RESULT = new NodoParser("funPropias","funPropias");
 					NodoParser n5 = new NodoParser("LENGTH","LENGTH");
 					RESULT.AgregarHijo(n5);
 					RESULT.AgregarHijo(e);
+					RESULT.codigo = " LENGTH "+ e.codigo;
 					:};

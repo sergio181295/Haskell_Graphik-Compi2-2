@@ -7,6 +7,20 @@ public class NodoParser {
     public ArrayList<NodoParser> hijos = new ArrayList<NodoParser>();
     public String valor;
     public int contador = 0;
+    public String codigo = "";
+    
+    public NodoParser clonar(){
+        NodoParser nuevo = new NodoParser(this.nombre, this.valor);
+        nuevo.contador = this.contador;
+        nuevo.codigo = this.codigo;
+        if(!hijos.isEmpty()){
+            for (NodoParser h : hijos) {
+                NodoParser aux = h.clonar();
+                nuevo.hijos.add(aux);
+            }
+        }
+        return nuevo;
+    }
     
     //CONSTRUCTOR PARA NODOS HOJA
     public NodoParser(String nombre, String valor) {

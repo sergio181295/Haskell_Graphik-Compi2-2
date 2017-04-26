@@ -19,19 +19,19 @@ public class Analizador {
     public static TablaSimbolos tablaImport = new TablaSimbolos("Tabla de Importaciones");
     public static String textoRaiz = "";
     public static boolean debuguear = false;
+    public static String codigoHaskell = "";
     
-    public static boolean compilarH(String codigo){
+    public static boolean compilarH(String codigo, boolean recolectar){
         StringReader mireader = new StringReader(codigo);
         ScannerH scanner = new ScannerH(mireader);
         ParserH parser = new ParserH(scanner);
         try {
             parser.parse();
-            if(raiz != null){
+            if(raiz != null && recolectar){
                 RecoleccionH.Recolectar(raiz);
                 pintar("H");
                 return true;
             }
-            
         } catch (Exception ex) {
             Logger.getLogger(Analizador.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -116,9 +116,9 @@ public class Analizador {
         }
         
         try {
-          String dotPath = "C:\\Program Files (x86)\\Graphviz2.38\\bin\\dot.exe";
-          String fileInputPath = "C:\\Users\\Sergio\\Dropbox\\Proyectos USAC\\Haskell_Graphik[Compi2]\\ClienteHaskellGraphik[Java][Compi2]\\Reportes\\arbol"+tipo+".txt";
-          String fileOutputPath = "C:\\Users\\Sergio\\Desktop\\arbol"+tipo+".jpg";
+          String dotPath = "C:\\Program Files (x86)\\Graphviz2.30\\bin\\dot.exe";
+          String fileInputPath = "C:\\Users\\pipaa\\Dropbox\\Proyectos USAC\\Haskell_Graphik[Compi2]\\ClienteHaskellGraphik[Java][Compi2]\\Reportes\\arbol"+tipo+".txt";
+          String fileOutputPath = "C:\\Users\\pipaa\\Desktop\\arbol"+tipo+".jpg";
           String tParam = "-Tjpg";
           String tOParam = "-o";
           String[] cmd = new String[5];
